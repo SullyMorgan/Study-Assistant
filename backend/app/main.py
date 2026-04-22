@@ -36,3 +36,18 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
   db.refresh(new_user)  # to get generated ID
 
   return new_user
+
+# login endpoint
+@app.post("/login", response_model=schemas.Token)
+def login_user(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
+  user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
+
+  if not user:
+    raise HTTPException(status_code=403, detail="Invalid Credentials.")
+  
+  if not utils.verify_password(user_credentials.password, user.password_hash):
+    raise HTTPException(status_code=403, detail="Invalid Credentials.")
+  
+  access_token = utils.create_access_token(data={"user_id": user.id})
+
+  return {"access_token": access_token, "token_type": "bearer"}
