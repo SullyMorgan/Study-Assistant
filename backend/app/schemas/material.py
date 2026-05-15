@@ -14,6 +14,7 @@ class MaterialOut(MaterialBase):
   id: int
   file_path: str
   file_type: str
+  content: Optional[str] = None
   user_id: int
 
   class Config:

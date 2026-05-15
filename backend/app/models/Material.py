@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Enum as SQLAlchemyEnum, Text
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -9,6 +9,7 @@ class Material(Base):
   title = Column(String, nullable=False)
   file_path = Column(String, nullable=False)
   file_type = Column(String)
+  content = Column(Text, nullable=True)
 
   user_id = Column(Integer, ForeignKey("users.id"))
   class_id = Column(Integer, ForeignKey("classes.id"), nullable=True)
