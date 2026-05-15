@@ -143,3 +143,21 @@ def get_material_summary(
     summary = ai_service.generate_summary(material.content)
 
     return {"material_title": material.title, "summary": summary}
+
+@router.get("/{material_id}/quiz")
+def get_material_quiz(
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    material = db.query(models.Material).filter(
+        models.Material.id == material_id,
+        models.Material.user_id == current_user.id
+    ).first()
+
+    if not material or not material.content:
+        raise HTTPException(status_code=404, detail="Material not found or has no content to generate quiz from.")
+    
+    quiz = ai_service.generate_quiz(material.content)
+
+    return {"material_title": material.title, "quiz": quiz}

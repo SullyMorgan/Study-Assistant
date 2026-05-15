@@ -20,7 +20,7 @@ def generate_summary(text: str):
   try:
     response = client.models.generate_content(
       model=MODEL_NAME,
-      contents=f"Summarize the following text, strictly in the language of the text, in bullet point, focus on the key concepts and important details: {text}"
+      contents=prompt
     )
     return response.text
   except Exception as e:
