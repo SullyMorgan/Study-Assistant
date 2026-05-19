@@ -1,3 +1,4 @@
+import json
 import os
 from dotenv import load_dotenv
 from google import genai
@@ -43,8 +44,37 @@ def generate_quiz(text: str):
   try:
     response = client.models.generate_content(
       model=MODEL_NAME,
-      contents=prompt
+      contents=prompt,
+      config={
+        "response_mime_type": "application/json",
+        "response_schema": {
+          "type": "OBJECT",
+          "properties": {
+            "questions": {
+              "type": "ARRAY",
+              "items": {
+                "type": "OBJECT",
+                "properties": {
+                  "question_text": {"type": "STRING"},
+                  "options": {
+                    "type": "ARRAY",
+                    "items": {"type": "STRING"}
+                  },
+                  "correct_option_index": {
+                    "type": "INTEGER",
+                    "description": "0-based index of the correct answer in the options array"
+                  },
+                  "explanation": {"type": "STRING"}
+                },
+                "required": ["question_text", "options", "correct_option_index", "explanation"]
+              }
+            }
+          },
+          "required": ["questions"]
+        }
+      }
     )
-    return response.text
+
+    return json.loads(response.text)
   except Exception as e:
-    return f"Error generating quiz: {e}"
+    return {"error": f"Error generating quiz: {str(e)}", "questions": []}

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
@@ -8,7 +8,7 @@ router = APIRouter(
   tags=["Schedule"]
 )
 
-@router.post("/", response_model=schemas.ScheduleOut)
+@router.post("/", response_model=schemas.ScheduleOut, status_code=status.HTTP_201_CREATED)
 def create_schedule(
   schedule_data: schemas.ScheduleCreate,
   db: Session = Depends(get_db),

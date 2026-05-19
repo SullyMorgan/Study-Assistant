@@ -47,7 +47,7 @@ def calculate_priority(task):
 
 def generate_plan(db: Session, user_id: int):
   start_date = datetime.now()
-  end_date = start_date + timedelta(days=3)
+  end_date = start_date + timedelta(days=7)
 
   slots = get_free_slots(db, user_id, start_date, end_date)
 
@@ -60,26 +60,45 @@ def generate_plan(db: Session, user_id: int):
 
   recommendations = []
 
-  for slot in slots:
-    for task in tasks:
+  SLEEP_START_HOUR = 22
+  SLEEP_END_HOUR = 8
+
+  current_slot_idx = 0
+
+  for task in tasks:
+    task_scheduled = False
+    while current_slot_idx < len(slots) and not task_scheduled:
+      slot = slots[current_slot_idx]
+      study_start = slot['start']
+
+      if study_start.hour >= SLEEP_START_HOUR or study_start.hour < SLEEP_END_HOUR:
+        if study_start.hour >= SLEEP_START_HOUR:
+          next_morning = study_start.replace(hour=SLEEP_END_HOUR, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        else:
+          next_morning = study_start.replace(hour=SLEEP_END_HOUR, minute=0, second=0, microsecond=0)
+
+        time_skipped = (next_morning - study_start).total_seconds() / 60
+        slot["start"] = next_morning
+        slot["duration_minutes"] -= time_skipped
+        continue
+      
       if slot["duration_minutes"] >= 45:
-        study_start = slot["start"]
-        study_end = study_start + timedelta(minutes=45)
+        study_end = slot["start"] + timedelta(minutes=45)
 
         recommendations.append({
           "task_id": task.id,
           "task_title": task.title,
           "class_name": task.related_class.name,
-          "start": study_start,
-          "end": study_end,
+          "start": slot["start"].isoformat() if hasattr(slot["start"], "isoformat") else slot["start"],
+          "end": study_end.isoformat() if hasattr(study_end, "isoformat") else study_end,
           "message": f"Recommended to study '{task.title}' from '{task.related_class.name}' during this slot."
         })
 
         slot["start"] = study_end + timedelta(minutes=15)
         slot["duration_minutes"] -= 60
+        task_scheduled = True
       else:
-        break
-
+        current_slot_idx += 1
 
   return recommendations
 

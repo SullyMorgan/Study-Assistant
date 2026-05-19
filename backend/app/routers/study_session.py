@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
@@ -8,7 +8,7 @@ router = APIRouter(
   tags=["Study Sessions"]
 )
 
-@router.post("/", response_model=schemas.StudySessionOut)
+@router.post("/", response_model=schemas.StudySessionOut, status_code=status.HTTP_201_CREATED)
 def create_study_session(
   session_data: schemas.StudySessionCreate,
   db: Session = Depends(get_db),
@@ -32,11 +32,19 @@ def create_study_session(
 
   return new_session
 
-@router.get("/", response_model=list[schemas.StudySessionOut])
+@router.get("/", response_model=list[schemas.StudySessionOut], status_code=status.HTTP_200_OK)
 def get_user_sessions(
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
-  return db.query(models.StudySession).filter(
+  sessions = db.query(models.StudySession).filter(
     models.StudySession.user_id == current_user.id
   ).all()
+
+  if not sessions:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="No study sessions found for the user."
+    )
+  
+  return sessions

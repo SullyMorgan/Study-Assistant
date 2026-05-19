@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
@@ -8,7 +8,7 @@ router = APIRouter(
   tags=["Tasks"]
 )
 
-@router.post("/", response_model=schemas.TaskOut)
+@router.post("/", response_model=schemas.TaskOut, status_code=status.HTTP_201_CREATED)
 def create_task(
   task_data: schemas.TaskCreate,
   db: Session = Depends(get_db),
@@ -31,3 +31,20 @@ def create_task(
   db.refresh(new_task)
 
   return new_task
+
+@router.get("/", response_model=list[schemas.TaskOut], status_code=status.HTTP_200_OK)
+def get_user_tasks(
+  db: Session = Depends(get_db),
+  current_user: models.User = Depends(get_current_user)
+):
+  tasks = db.query(models.Task).filter(
+    models.Task.user_id == current_user.id
+  ).all()
+
+  if not tasks:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="No tasks found for the user."
+    )
+
+  return tasks

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
@@ -8,7 +8,7 @@ router = APIRouter(
   tags=["Classes"]
 )
 
-@router.post("/", response_model=schemas.ClassOut)
+@router.post("/", response_model=schemas.ClassOut, status_code=status.HTTP_201_CREATED)
 def create_class(
   class_data: schemas.ClassCreate,
   db: Session = Depends(get_db),
@@ -23,6 +23,6 @@ def create_class(
   db.refresh(new_class)
   return new_class
 
-@router.get("/", response_model=list[schemas.ClassOut])
+@router.get("/", response_model=list[schemas.ClassOut], status_code=status.HTTP_200_OK)
 def get_classes(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
   return db.query(models.Class).filter(models.Class.user_id == current_user.id).all()
