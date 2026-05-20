@@ -1,12 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
+import json
 
 router = APIRouter(
   prefix="/sessions",
   tags=["Study Sessions"]
 )
+
+# helper function simulating notification sending
+def send_notification_delay(user_id: int, message: str):
+  print("Simulating notification to user_id {}: {}".format(user_id, message))
 
 @router.post("/", response_model=schemas.StudySessionOut, status_code=status.HTTP_201_CREATED)
 def create_study_session(
@@ -40,11 +45,43 @@ def get_user_sessions(
   sessions = db.query(models.StudySession).filter(
     models.StudySession.user_id == current_user.id
   ).all()
-
-  if not sessions:
-    raise HTTPException(
-      status_code=status.HTTP_404_NOT_FOUND,
-      detail="No study sessions found for the user."
-    )
   
   return sessions
+
+@router.post("/{session_id}/complete", status_code=status.HTTP_200_OK)
+def complete_study_session(
+  session_id: int,
+  actual_duration_minutes: int,
+  db: Session = Depends(get_db),
+  current_user: models.User = Depends(get_current_user)
+):
+  session = db.query(models.PlannedSession).filter(
+    models.PlannedSession.id == session_id,
+    models.PlannedSession.user_id == current_user.id
+  ).first()
+
+  if not session:
+    raise HTTPException(
+      status_code=404,
+      detail="Planned study session not found."
+    )
+  
+  session.actual_duration_minutes = actual_duration_minutes
+
+  task = db.query(models.Task).filter(models.Task.id == session.task_id).first()
+  if task:
+    task.is_completed = True
+
+  db.commit()
+  return {"message": "Study session marked as completed."}
+
+@router.post("/register-push", status_code=status.HTTP_200_OK)
+def register_push(
+  subscription_data: dict,
+  db: Session = Depends(get_db),
+  current_user: models.User = Depends(get_current_user)
+):
+  current_user.push_subscription = json.dumps(subscription_data)
+  db.commit()
+
+  return {"message": "Push subscription registered successfully."}

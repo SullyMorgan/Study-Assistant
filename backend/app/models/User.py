@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 from database import Base 
 
@@ -9,6 +9,7 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
+    push_subscription = Column(Text, nullable=True)
 
     classes = relationship("Class", back_populates="owner", cascade="all, delete-orphan")
     sessions = relationship("StudySession", back_populates="user", cascade="all, delete-orphan")
