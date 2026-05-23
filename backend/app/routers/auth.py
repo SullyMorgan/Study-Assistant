@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, dependencies, status
 from sqlalchemy.orm import Session
 import models, schemas, utils
 from database import SessionLocal
-from dependencies import get_db
+from dependencies import get_db, get_current_user
 
 router = APIRouter(
   prefix="/auth",
@@ -51,3 +51,22 @@ def login_user(user_credentials: schemas.UserLogin, db: Session = Depends(get_db
   access_token = utils.create_access_token(data={"user_id": user.id})
 
   return {"access_token": access_token, "token_type": "bearer"}
+
+@router.put("/change-password", status_code=status.HTTP_200_OK)
+def change_password(
+  password_data: schemas.PasswordChange,
+  db: Session = Depends(get_db),
+  current_user: models.User = Depends(get_current_user)
+):
+  if not utils.verify_password(password_data.current_password, current_user.password_hash):
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="Incorrect current password."
+    )
+  
+  new_hashed_password = utils.hash_password(password_data.new_password)
+
+  current_user.password_hash = new_hashed_password
+  db.commit()
+
+  return {"message": "Password changed successfully."}

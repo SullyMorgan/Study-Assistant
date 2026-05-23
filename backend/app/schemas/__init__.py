@@ -5,3 +5,4 @@ from .schedule import ScheduleCreate, ScheduleOut
 from .sessions import StudySessionOut, StudySessionCreate
 from .material import MaterialCreate, MaterialOut
 from .plannedSession import PlanOut
+from .passwordChange import PasswordChange
