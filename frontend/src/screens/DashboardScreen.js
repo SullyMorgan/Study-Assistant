@@ -20,6 +20,7 @@ import { logout } from '../api/auth';
 import { useTranslation } from 'react-i18next';
 import { fetchTasks, toggleTask, fetchClasses, createTask } from '../api/tasks';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function DashboardScreen({ navigation }) {
   const { t } = useTranslation();
@@ -33,6 +34,10 @@ export default function DashboardScreen({ navigation }) {
   const [newTitle, setNewTitle] = useState('');
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedType, setSelectedType] = useState('assignment');
+  
+  const [taskDeadline, setTaskDeadline] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  
   const [isSaving, setIsSaving] = useState(false);
 
   const loadDashboardData = async () => {
@@ -84,12 +89,9 @@ export default function DashboardScreen({ navigation }) {
 
     setIsSaving(true);
     try {
-      const mockDeadline = new Date();
-      mockDeadline.setDate(mockDeadline.getDate() + 3);
-
       const taskData = {
         title: newTitle,
-        deadline: mockDeadline.toISOString(),
+        deadline: taskDeadline.toISOString(),
         type: selectedType,
         class_id: parseInt(selectedClassId)
       };
@@ -98,6 +100,7 @@ export default function DashboardScreen({ navigation }) {
       setTasks(prev => [createdTask, ...prev]);
 
       setNewTitle('');
+      setTaskDeadline(new Date());
       setIsModalVisible(false);
       Keyboard.dismiss();
     } catch (error) {
@@ -113,12 +116,17 @@ export default function DashboardScreen({ navigation }) {
     return foundClass ? foundClass.name : `${t('class')} ${classId}`;
   };
 
-  // group by deadline
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setTaskDeadline(selectedDate);
+    }
+  };
+
   const deadlines = tasks
     .filter(t => !t.completed)
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
-  // daily tasks
   const sortedTasks = [...tasks].sort((a, b) => a.is_completed - b.is_completed);
 
   const getCategoryDetails = (type) => {
@@ -150,7 +158,7 @@ export default function DashboardScreen({ navigation }) {
       >
         <View style={styles.header}>
           <Text style={styles.welcomeText}>{t('hello')},</Text>
-          <Text style={styles.userName}>{userName || t('user')}</Text>
+          <Text style={styles.nameText}>{userName || t('user')}</Text>
         </View>
 
         <View style={styles.sectionContainer}>
@@ -273,6 +281,27 @@ export default function DashboardScreen({ navigation }) {
                   ))}
                 </View>
 
+                <Text style={styles.inputLabel}>{t('deadline')}</Text>
+                <TouchableOpacity 
+                  style={styles.datePickerButton} 
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={20} color="#1e3a8a" style={{ marginRight: 10 }} />
+                  <Text style={styles.datePickerButtonText}>
+                    {formatDate(taskDeadline)}
+                  </Text>
+                </TouchableOpacity>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={taskDeadline}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    minimumDate={new Date()}
+                    onChange={onDateChange}
+                  />
+                )}
+
                 <Text style={styles.inputLabel}>{t('selectClass')}</Text>
                 {classes.length === 0 ? (
                   <TextInput
@@ -319,7 +348,7 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
   header: { marginTop: 30, marginBottom: 25 },
   welcomeText: { fontSize: 18, color: '#6b7280', fontWeight: '500' },
-  nameText: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a' },
+  nameText: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a' }, // 🌟 JAVÍTVA: Itt volt elcsúszva a stílus hivatkozása
   sectionContainer: { marginBottom: 30 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15 },
   
@@ -350,6 +379,9 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 8, marginTop: 10 },
   input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 15 },
   
+  datePickerButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, marginBottom: 15 },
+  datePickerButtonText: { fontSize: 16, color: '#1f2937', fontWeight: '500' },
+
   typeSelectorContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
   typeButton: { flex: 1, paddingVertical: 10, backgroundColor: '#e5e7eb', borderRadius: 8, alignItems: 'center', marginHorizontal: 4 },
   typeButtonText: { fontSize: 12, fontWeight: 'bold', color: '#4b5563' },

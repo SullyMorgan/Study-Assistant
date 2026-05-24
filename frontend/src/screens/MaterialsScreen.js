@@ -1,11 +1,385 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  TextInput,
+  ScrollView,
+  RefreshControl,
+  Alert,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import * as DocumentPicker from 'expo-document-picker';
+import {
+  uploadMaterial,
+  getMaterials,
+  getMaterialSummary,
+  getMaterialQuiz,
+  deleteMaterial
+} from '../api/materials';
 
 export default function MaterialsScreen() {
+  const { t } = useTranslation();
+
+  const [materials, setMaterials] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const[isUploadModalVisible, setIsUploadModalVisible] = useState(false);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiQuiz, setAiQuiz] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('summary');
+
+  const loadMaterials = async () => {
+    try {
+      const data = await getMaterials();
+      setMaterials(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMaterials();
+  }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    loadMaterials();
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        setSelectedFile(file);
+
+        if (!uploadTitle) {
+          setUploadTitle(file.name.replace('.pdf', ''));
+        }
+      }
+    } catch (error) {
+      console.error('Document pick failed', error);
+      Alert.alert(t('errorTitle'), t('filePickFailed'));
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadTitle.trim() || !selectedFile) {
+      Alert.alert(t('errorTitle'), t('pickPdf'));
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadMaterial(
+        uploadTitle,
+        selectedFile.uri,
+        selectedFile.name,
+        selectedFile.mimeType
+      );
+
+      Alert.alert(t('successTitle'), t('uploadSuccess'));
+      setIsUploadModalVisible(false);
+      setUploadTitle('');
+      setSelectedFile(null);
+      loadMaterials();
+    } catch (error) {
+      console.error('Upload failed', error);
+      Alert.alert(t('errorTitle'), error.message || t('uploadFailed'));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    Alert.alert(
+      t('deleteConfirmTitle'),
+      t('deleteConfirmMsg'),
+      [
+        { text: t('cancel'), style: 'cancel'},
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMaterial(id);
+              setMaterials(prev => prev.filter(m => m.id !== id));
+              if (selectedMaterial?.id === id) setIsDetailsModalVisible(false);
+            } catch (error) {
+              console.error(error);
+              Alert.alert(t('errorTitle'), error.message || t('deleteFailed'));
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleViewDetails = async (material) => {
+    setSelectedMaterial(material);
+    setAiSummary('');
+    setAiQuiz(null);
+    setActiveTab('summary');
+    setIsDetailsModalVisible(true);
+    setIsAiLoading(true);
+
+    try {
+      const summaryData = await getMaterialSummary(material.id);
+      setAiSummary(summaryData.summary || t('noSummary'));
+    } catch (error) {
+      console.error('Failed to fetch material summary', error);
+      Alert.alert(t('errorTitle'), error.message || t('summaryFailed'));
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleTabChange = async (tab) => {
+    setActiveTab(tab);
+    if (tab === 'quiz' && (!aiQuiz || aiQuiz.length === 0) && selectedMaterial) {
+      setIsAiLoading(true);
+      try {
+        const quizData = await getMaterialQuiz(selectedMaterial.id);
+
+        setAiQuiz(quizData.quiz || []);
+      } catch (error) {
+        console.error(error);
+        Alert.alert(t('errorTitle'), error.message || t('quizFailed'));
+      } finally {
+        setIsAiLoading(false);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1e3a8a" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Itt lesz az AI Kvíz és az PDF Összegző! 🤖</Text>
+    <View style={{ flex: 1, backgroundColor: '#f5f7db' }}>
+      <View style={styles.container}>
+        <Text style={styles.screenTitle}>{t('myMaterials')}</Text>
+        <Text style={styles.subTitle}>{t('materialsSubtitle')}</Text>
+
+        <FlatList
+          data={materials}
+          keyExtractor={(item) => item.id.toString()}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-attach-outline" size={50} color="#9ca3af" />
+              <Text style={styles.emptyText}>{t('noMaterials')}</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.materialCard} onPress={() => handleViewDetails(item)}>
+              <View style={styles.materialIconContainer}>
+                <Ionicons name="document-text" size={28} color="ef4444" />
+              </View>
+              <View style={styles.materialInfo}>
+                <Text style={styles.materialTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.materialMeta}>{t('pdfDoc')}</Text>
+              </View>
+              <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item.id)}>
+                <Ionicons name="trash-outline" size={20} color="#9ca3af" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      <TouchableOpacity style={styles.fab} onPress={() => setIsUploadModalVisible(true)}>
+        <Ionicons name="add" size={30} color="#fff" />
+      </TouchableOpacity>
+
+      <Modal visible={isUploadModalVisible} animationType="slide" transparent={true}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modaltitle}>{t('uploadMaterial')}</Text>
+                <TouchableOpacity onPress={() => setIsUploadModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.inputLabel}>{t('materialTitle')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t('materialTitlePlace')}
+                placeholderTextColor="#9ca3af"
+                value={uploadTitle}
+                onChangeText={setUploadTitle}
+              />
+
+              <Text style={styles.inputLabel}>{t('selectPdf')}</Text>
+              <TouchableOpacity
+                style={[styles.filePickerBox, selectedFile && styles.filePickerBoxSelected]}
+                onPress={handlePickDocument}
+              >
+                <Ionicons
+                  name={selectedFile ? "checkmark-circle" : "cloud-upload-outline"}
+                  size={32}
+                  color={selectedFile ? "#10b981" : "#1e3a8a"}
+                />
+                <Text style={[styles.filePickerText, selectedFile && { color: '#10b981', fontWeight: 'bold' }]}>
+                  {selectedFile ? selectedFile.name : t('pickPdf')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.saveButton} onPress={handleUpload} disabled={isUploading}>
+                {isUploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('uploadAndProcess')}</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal visible={isDetailsModalVisible} animationType="slide" transparent={false}>
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailsHeader}>
+            <TouchableOpacity onPress={() => setIsDetailsModalVisible(false)} style={styles.closeDetailsBtn}>
+              <Ionicons name="arrow-back" size={24} color="#1f2937" />
+              <Text style={styles.detailsHeaderTitle} numberOfLines={1}>{selectedMaterial?.title}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tabBar}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+              onPress={() => handleTabChange('summary')}
+            >
+              <Ionicons name="list-circle-outline" size={20} color={activeTab ==='summary' ? '#1e3a8a' : '#6b7280'} />
+              <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>{t('summary')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'quiz' && styles.activeTab]}
+              onPress={() => handleTabChange('quiz')}
+            >
+              <Ionicons name="help-circle-outline" size={20} color={activeTab === 'quiz' ? '#1e3a8a' : '#6b7280'} />
+              <Text style={[styles.tabText, activeTab === 'quiz' && styles.activeTabText]}>{t('quiz')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.detailsBody}>
+            {isAiLoading ? (
+              <View style={styles.aiLoadingBox}>
+                <ActivityIndicator size="large" color="#1e3a8a" />
+                <Text style={styles.aiLoadingText}>{t('aiProcessing')}</Text>
+              </View>
+            ) : activeTab === 'summary' ? (
+              <View style={styles.summaryBox}>
+                <Text style={styles.summaryHeadline}>{t('keySummaryPoint')}</Text>
+                <Text style={styles.summaryText}>{aiSummary}</Text>
+              </View>
+            ) : (
+              <View style={styles.quizBox}>
+                <Text style={styles.summaryHeadline}>{t('testYourself')}</Text>
+                {aiQuiz && aiQuiz.length > 0 ? (
+                  aiQuiz.map((q, index) => (
+                    <View key={index} style={styles.quizCard}>
+                      <Text style={styles.quizQuestion}>{index + 1}. {q.question_text || q.text}</Text>
+                      {(q.options || ['A', 'B', 'C', 'D']).map((opt, oIdx) => (
+                        <View key={oIdx} style={styles.quizOptionBox}>
+                          <Text style={styles.quizOptionText}>{opt}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyText}>{t('noQuiz')}</Text>
+                )}
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
-const styles = StyleSheet.create({ container: { flex: 1, justifyContent: 'center', alignItems: 'center' }, text: { fontSize: 18 } });
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
+  screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a', marginTop: 10 },
+  subTitle: { fontSize: 13, color: '#6b7280', marginTop: 5, marginBottom: 20, lineHeight: 18 },
+  
+  materialCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb' },
+  materialIconContainer: { backgroundColor: '#fee2e2', padding: 10, borderRadius: 10 },
+  materialInfo: { flex: 1, marginLeft: 15 },
+  materialTitle: { fontSize: 16, fontWeight: 'bold', color: '#1f2937' },
+  materialMeta: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  deleteBtn: { padding: 5 },
+
+  emptyContainer: { alignItems: 'center', marginTop: 60, paddingHorizontal: 20 },
+  emptyText: { color: '#6b7280', textAlign: 'center', marginTop: 10, fontSize: 14, lineHeight: 20 },
+  
+  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#1e3a8a', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
+  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 8, marginTop: 10 },
+  input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 15 },
+  
+  filePickerBox: { borderStyle: 'dashed', borderWidth: 2, borderColor: '#3b82f6', backgroundColor: '#eff6ff', borderRadius: 8, padding: 25, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  filePickerBoxSelected: { borderColor: '#10b981', backgroundColor: '#f0fdf4' },
+  filePickerText: { marginTop: 8, fontSize: 14, color: '#1e3a8a' },
+  
+  saveButton: { backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  detailsContainer: { flex: 1, backgroundColor: '#f5f7fb', paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  detailsHeader: { paddingHorizontal: 20, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', backgroundColor: '#fff' },
+  closeDetailsBtn: { flexDirection: 'row', alignItems: 'center' },
+  detailsHeaderTitle: { fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginLeft: 10, flex: 1 },
+  
+  tabBar: { flexDirection: 'row', backgroundColor: '#fff', paddingVertical: 5 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  activeTab: { borderBottomColor: '#1e3a8a' },
+  tabText: { fontSize: 14, color: '#6b7280', marginLeft: 6, fontWeight: '500' },
+  activeTabText: { color: '#1e3a8a', fontWeight: 'bold' },
+  
+  detailsBody: { flex: 1, padding: 20 },
+  aiLoadingBox: { alignItems: 'center', marginTop: 60 },
+  aiLoadingText: { marginTop: 15, color: '#4b5563', fontSize: 14, textAlign: 'center' },
+  
+  summaryBox: { backgroundColor: '#fff', borderRadius: 12, padding: 20, borderWidth: 1, borderColor: '#e5e7eb' },
+  summaryHeadline: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15 },
+  summaryText: { fontSize: 15, color: '#374151', lineHeight: 24 },
+  
+  quizBox: { marginBottom: 30 },
+  quizCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#e5e7eb' },
+  quizQuestion: { fontSize: 15, fontWeight: 'bold', color: '#1f2937', marginBottom: 12 },
+  quizOptionBox: { backgroundColor: '#f3f4f6', padding: 10, borderRadius: 8, marginBottom: 6 },
+  quizOptionText: { fontSize: 14, color: '#4b5563' }
+});

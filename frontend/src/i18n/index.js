@@ -55,6 +55,7 @@ const resources = {
       "noUrgentTasks": "Nincsenek sürgős határidők",
       "noTasks": "Nincsenek feladataid",
       "user": "Felhasználó",
+      "deadline": "Határidő",
 
       "exam": "Vizsga",
       "assignment": "Házi feladat",
@@ -87,6 +88,23 @@ const resources = {
       "endTime": "Befejezés",
       "createSchedule": "Esemény hozzáadása a programodhoz",
       "calendar": "Naptár",
+
+      "myMaterials": "Tananyagaim",
+      "materialsSubtitle": "Itt találod az összes tananyagodat.",
+      "noMaterials": "Még nem adtál hozzá egy tananyagot sem. Kattints a '+' gombra a kezdéshez!",
+      "uploadMaterial": "Tananyag feltöltése",
+      "materialTitle": "Tananyag címe",
+      "selectPdf": "Válassz egy fájlt a készülékedről (PDF)",
+      "materialTitlePlace": "Írd be a tananyag címét",
+      "uploadAndProcess": "Feltöltés és feldolgozás",
+      "summary": "Összefoglaló",
+      "quiz": "Kvíz",
+      "aiProcessing": "Az AI feldolgozza a tananyagodat. Ez eltarthat egy ideig...",
+      "noSummary": "Nincs elérhető összefoglaló.",
+      "noQuiz": "Nincs elérhető kvíz.",
+      "pickPdf": "Válassz egy PDF-et",
+      "keySummaryPoint": "Kulcsfontosságú pontok",
+      "testYourself": "Teszteld tudásod ezzel a kvízzel!"
     }
   },
   en: {
@@ -151,8 +169,9 @@ const resources = {
       "addNewTask": "Add New Task",
       "taskTitle": "Task Title",
       "taskType": "Task Type",
-      "selectClass": "Select Class",
+      "selectClass": "Select Course",
       "createTask": "Create Task",
+      "deadline": "Deadline",
 
       "noClasses": "You haven't added any courses yet. Click '+' to get started!",
       "myClasses": "My Courses",
@@ -174,6 +193,24 @@ const resources = {
       "endTime": "Ends",
       "createSchedule": "Add an event to your schedule",
       "calendar": "Calendar",
+
+      // materials screen
+      "myMaterials": "My Materials",
+      "materialsSubtitle": "Here are all your materials.",
+      "noMaterials": "You haven't added any materials yet. Click '+' to get started!",
+      "uploadMaterial": "Upload Material",
+      "materialTitle": "Material Title",
+      "selectPdf": "Select a file from your device (PDF)",
+      "materialTitlePlace": "Enter material title",
+      "uploadAndProcess": "Upload and Process",
+      "summary": "Summary",
+      "quiz": "Quiz",
+      "aiProcessing": "AI is processing your material. This may take a moment...",
+      "noSummary": "No summary available.",
+      "noQuiz": "No quiz available.",
+      "pickPdf": "Pick a PDF",
+      "keySummaryPoint": "Key Bulletpoints",
+      "testYourself": "Test yourself with this quiz!"
     }
   },
   ro: {
@@ -240,6 +277,7 @@ const resources = {
       "taskType": "Tipul sarcinii",
       "selectClass": "Selectează materia",
       "createTask": "Creează sarcină",
+      "deadline": "Termen limită",
 
       "noClasses": "Nu ai adăugat încă niciun curs. Apasă '+' pentru a începe!",
       "myClasses": "Cursurile mele",
@@ -260,6 +298,23 @@ const resources = {
       "endTime": "Se termină",
       "createSchedule": "Adaugă un eveniment în programul tău",
       "calendar": "Calendar",
+
+      "myMaterials": "Materialele mele",
+      "materialsSubtitle": "Aici sunt toate materialele tale.",
+      "noMaterials": "Nu ai adăugat încă niciun material. Apasă '+' pentru a începe!",
+      "uploadMaterial": "Încarcă material",
+      "materialTitle": "Titlu material",
+      "selectPdf": "Selectează un fișier de pe dispozitivul tău (PDF)",
+      "materialTitlePlace": "Introduceți titlul materialului",
+      "uploadAndProcess": "Încarcă și procesează",
+      "summary": "Rezumat",
+      "quiz": "Chestionar",
+      "aiProcessing": "AI procesează materialul tău. Acest lucru poate dura un moment...",
+      "noSummary": "Nu există rezumat disponibil.",
+      "noQuiz": "Nu există chestionar disponibil.",
+      "pickPdf": "Alege un PDF",
+      "keySummaryPoint": "Puncte cheie",
+      "testYourself": "Testează-te cu acest chestionar!"
     }
   }
 };
