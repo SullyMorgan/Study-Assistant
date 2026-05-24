@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, dependencies, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas, utils
 from database import SessionLocal
@@ -50,7 +50,11 @@ def login_user(user_credentials: schemas.UserLogin, db: Session = Depends(get_db
 
   access_token = utils.create_access_token(data={"user_id": user.id})
 
-  return {"access_token": access_token, "token_type": "bearer"}
+  return {
+    "access_token": access_token,
+    "token_type": "bearer",
+    "user_name": user.name
+  }
 
 @router.put("/change-password", status_code=status.HTTP_200_OK)
 def change_password(

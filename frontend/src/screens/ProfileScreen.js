@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View,
   Text,
@@ -14,9 +14,12 @@ import {
 import { logout, changePassword } from '../api/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
+
+  const [userName, setUserName] = useState('');
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -29,6 +32,21 @@ export default function ProfileScreen({ navigation }) {
   const [isNewVisible, setIsNewVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const storedName = await AsyncStorage.getItem('userName');
+        if (storedName) {
+          setUserName(storedName);
+        }
+      } catch (error) {
+        console.error('Failed to load user data', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
   const toggleLanguage = () => {
     let nextLanguage = 'en';
 
@@ -101,7 +119,7 @@ export default function ProfileScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <Ionicons name="person-circle-outline" size={80} color="#1e3a8a" />
-        <Text style={styles.title}>{t('myProfile')}</Text>
+        <Text style={styles.title}>{userName || t('myProfile')}</Text>
       </View>
 
       <View style={styles.menuContainer}>

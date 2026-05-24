@@ -48,3 +48,26 @@ def get_user_tasks(
     )
 
   return tasks
+
+@router.put("/{task_id}/toggle", response_model=schemas.TaskOut, status_code=status.HTTP_200_OK)
+def toggle_task_status(
+  task_id: int,
+  db: Session = Depends(get_db),
+  current_user: models.User = Depends(get_current_user)
+):
+  task = db.query(models.Task).filter(
+    models.Task.id == task_id,
+    models.Task.user_id == current_user.id
+  ).first()
+
+  if not task:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Task not found."
+    )
+  
+  task.is_completed = not task.is_completed
+  db.commit()
+  db.refresh(task)
+
+  return task

@@ -14,6 +14,7 @@ import CalendarScreen from '../screens/CalendarScreen';
 import MaterialsScreen from '../screens/MaterialsScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ClassesScreen from '../screens/ClassScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -24,7 +25,7 @@ function MainTabNavigator({ navigation }) {
 
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarActiveTintColor: '#2563eb',
         tabBarInactiveTintColor: '#6b7280',
         headerStyle: { backgroundColor: '#f5f7fb' },
@@ -37,21 +38,41 @@ function MainTabNavigator({ navigation }) {
           >
             <Ionicons name="person-circle" size={28} color="#1e3a8a" />
           </TouchableOpacity>
-        )
-      }}
+        ),
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          
+          if (route.name === 'Dashboard') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Classes') {
+            iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'Calendar') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name == 'Materials') {
+            iconName = focused ? 'folder-open' : 'folder-open-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
     >
       <Tab.Screen
-        name={t('dashboard')}
+        name="Dashboard"
         component={DashboardScreen}
         options={{ tabBarLabel: t('dashboard') }}
       />
       <Tab.Screen
-        name={t('calendar')}
+        name="Classes"
+        component={ClassesScreen}
+        options={{ tabBarLabel: t('classes') }}
+      />
+      <Tab.Screen
+        name="Calendar"
         component={CalendarScreen}
         options={{ tabBarLabel: t('calendar') }}
       />
       <Tab.Screen
-        name={t('materials')}
+        name="Materials"
         component={MaterialsScreen}
         options={{ tabBarLabel: t('materials') }}
       />
@@ -61,7 +82,7 @@ function MainTabNavigator({ navigation }) {
 
 export default function AppNavigator() {
   const { t } = useTranslation();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
 

@@ -7,6 +7,9 @@ export const login = async (email, password) => {
 
     if (response.data.access_token) {
       await AsyncStorage.setItem('userToken', response.data.access_token);
+
+      const nameToStore = response.data.user_name || response.data.name || 'User';
+      await AsyncStorage.setItem('userName', nameToStore);
     }
     return response.data;
   } catch (error) {
@@ -16,6 +19,7 @@ export const login = async (email, password) => {
 
 export const logout = async () => {
   await AsyncStorage.removeItem('userToken');
+  await AsyncStorage.removeItem('userName');
 };
 
 export const changePassword = async (currentPassword, newPassword) => {
