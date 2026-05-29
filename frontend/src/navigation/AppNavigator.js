@@ -15,6 +15,7 @@ import MaterialsScreen from '../screens/MaterialsScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ClassesScreen from '../screens/ClassScreen';
+import PlannerScreen from '../screens/PlannerScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -46,9 +47,11 @@ function MainTabNavigator({ navigation }) {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Classes') {
             iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'Planner') {
+            iconName = focused ? 'sparkles' : 'sparkles-outline';
           } else if (route.name === 'Calendar') {
             iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name == 'Materials') {
+          } else if (route.name === 'Materials') {
             iconName = focused ? 'folder-open' : 'folder-open-outline';
           }
 
@@ -65,6 +68,11 @@ function MainTabNavigator({ navigation }) {
         name="Classes"
         component={ClassesScreen}
         options={{ tabBarLabel: t('classes') }}
+      />
+      <Tab.Screen
+        name="Planner"
+        component={PlannerScreen}
+        options={{ tabBarLabel: t('planner') }}
       />
       <Tab.Screen
         name="Calendar"

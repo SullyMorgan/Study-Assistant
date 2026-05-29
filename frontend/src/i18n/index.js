@@ -88,6 +88,14 @@ const resources = {
       "endTime": "Befejezés",
       "createSchedule": "Esemény hozzáadása a programodhoz",
       "calendar": "Naptár",
+      "noTasksOrStudySessions": "Nincsenek feladatok vagy tanulási blokkok erre a napra.",
+      "addFixedProgram": "Fix program hozzáadása",
+      "selectedDate": "Kiválasztott nap",
+      "repeatWeekly": "Minden héten ismétlődjön?",
+      "startTime": "Kezdés időpontja",
+      "endTime": "Befejezés időpontja",
+      "programTitlePlace": "Esemény címe (pl. Edzés, Matek előadás)",
+
 
       "myMaterials": "Tananyagaim",
       "materialsSubtitle": "Itt találod az összes tananyagodat.",
@@ -104,7 +112,25 @@ const resources = {
       "noQuiz": "Nincs elérhető kvíz.",
       "pickPdf": "Válassz egy PDF-et",
       "keySummaryPoint": "Kulcsfontosságú pontok",
-      "testYourself": "Teszteld tudásod ezzel a kvízzel!"
+      "testYourself": "Teszteld tudásod ezzel a kvízzel!",
+      "deleteConfirmTitle": "Tananyag törlése",
+      "deleteConfirmMsg": "Biztosan törölni szeretnéd ezt a tananyagot?",
+
+      // planner screen
+      "studyPlan": "Tanulási terv készítése",
+      "studyPlanSubtitle": "Generálj személyre szabott tanulási tervet a programod és preferenciáid alapján.",
+      "welcomeToStudyPlan": "Hozzunk létre egy tanulási tervet, ami csak neked szól.",
+      "clickToGeneratePlan": "Kattints az alábbi gombra a személyre szabott tanulási terved generálásához.",
+      "maxSessions": "Maximális blokkok/nap",
+      "generatePlan": "Terv generálása",
+      "generatingPlan": "A tanulási terved generálása...",
+      "emptyPlan": "A tanulási terved üres! Szuper munka, hogy ilyen jól tartod a programodat!",
+      "decline": "Terv elutasítása",
+      "accept": "Terv elfogadása",
+      "failedToAcceptPlan": "Sajnáljuk! Valami hiba történt a terv elfogadása közben. Kérlek próbáld újra.",
+      "planAcceptedMessage": "Tanulási terv elfogadva! A naptárad frissült az új tanulási blokkokkal. Sok sikert a tanuláshoz!",
+      "failedToGeneratePlan": "Sajnáljuk! Valami hiba történt a terv generálása közben. Kérlek próbáld újra.",
+      "planAccepted": "Terv elfogadva"
     }
   },
   en: {
@@ -193,6 +219,13 @@ const resources = {
       "endTime": "Ends",
       "createSchedule": "Add an event to your schedule",
       "calendar": "Calendar",
+      "noTasksOrStudySessions": "No tasks or study sessions scheduled for this day.",
+      "addFixedProgram": "Add Fixed Program",
+      "selectedDate": "Selected Date",
+      "repeatWeekly": "Repeat weekly?",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "programTitlePlace": "Event title (e.g. Gym, Math lecture)",
 
       // materials screen
       "myMaterials": "My Materials",
@@ -210,7 +243,26 @@ const resources = {
       "noQuiz": "No quiz available.",
       "pickPdf": "Pick a PDF",
       "keySummaryPoint": "Key Bulletpoints",
-      "testYourself": "Test yourself with this quiz!"
+      "testYourself": "Test yourself with this quiz!",
+      "deleteConfirmTitle": "Delete Material",
+      "deleteConfirmMsg": "Are you sure you want to delete this material?",
+
+      // planner screen
+      "studyPlan": "Plan your study sessions",
+      "studyPlanSubtitle": "Generate a personalized study plan based on your schedule and preferences.",
+      "welcomeToStudyPlan": "Let's create a study plan tailored just for you.",
+      "clickToGeneratePlan": "Click the button below to generate your personalized study plan.",
+      "maxSessions": "Max sessions/day",
+      "generatePlan": "Generate Plan",
+      "generatingPlan": "Generating your study plan...",
+      "emptyPlan": "Your study plan is empty! Great job staying on top of your schedule!",
+      "decline": "Decline Plan",
+      "accept": "Accept Plan",
+      "failedToAcceptPlan": "Sorry! Something went wrong while accepting the plan. Please try again.",
+      "planAcceptedMessage": "Study plan accepted! Your calendar has been updated with your new study sessions. Good luck with your studies!",
+      "failedToGeneratePlan": "Sorry! Something went wrong while generating the plan. Please try again.",
+      "planAccepted": "Plan Accepted"
+
     }
   },
   ro: {
@@ -298,6 +350,13 @@ const resources = {
       "endTime": "Se termină",
       "createSchedule": "Adaugă un eveniment în programul tău",
       "calendar": "Calendar",
+      "noTasksOrStudySessions": "Nu există sarcini sau sesiuni de studiu programate pentru această zi.",
+      "addFixedProgram": "Adaugă program fix",
+      "selectedDate": "Data selectată",
+      "repeatWeekly": "Repetă săptămânal?",
+      "startTime": "Ora de început",
+      "endTime": "Ora de sfârșit",
+      "programTitlePlace": "Titlul evenimentului (ex. Sală de sport, Lecție de mate)",
 
       "myMaterials": "Materialele mele",
       "materialsSubtitle": "Aici sunt toate materialele tale.",
@@ -314,7 +373,25 @@ const resources = {
       "noQuiz": "Nu există chestionar disponibil.",
       "pickPdf": "Alege un PDF",
       "keySummaryPoint": "Puncte cheie",
-      "testYourself": "Testează-te cu acest chestionar!"
+      "testYourself": "Testează-te cu acest chestionar!",
+      "deleteConfirmTitle": "Șterge material",
+      "deleteConfirmMsg": "Sigur dorești să ștergi acest material?",
+
+      // planner screen
+      "studyPlan": "Planifică-ți sesiunile de studiu",
+      "studyPlanSubtitle": "Generează un plan de studiu personalizat bazat pe programul și preferințele tale.",
+      "welcomeToStudyPlan": "Să creăm un plan de studiu adaptat doar pentru tine.",
+      "clickToGeneratePlan": "Apasă butonul de mai jos pentru a genera planul tău de studiu personalizat.",
+      "maxSessions": "Max sesiuni/zi",
+      "generatePlan": "Generează plan",
+      "generatingPlan": "Generăm planul tău de studiu...",
+      "emptyPlan": "Planul tău de studiu este gol! Groz job că îți ții programul sub control!",
+      "decline": "Refuză planul",
+      "accept": "Acceptă planul",
+      "failedToAcceptPlan": "Ne pare rău! Ceva nu a mers bine în timp ce acceptai planul. Vă rugăm să încercați din nou.",
+      "planAcceptedMessage": "Plan de studiu acceptat! Calendarul tău a fost actualizat cu noile sesiuni de studiu. Spor la învățat!",
+      "failedToGeneratePlan": "Ne pare rău! Ceva a mers prost în timp ce generai planul. Vă rugăm să încercați din nou.",
+      "planAccepted": "Plan acceptat"
     }
   }
 };

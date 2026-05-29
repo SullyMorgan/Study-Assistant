@@ -3,48 +3,78 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
   Modal,
   TextInput,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Platform
+  Switch,
+  Alert
 } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fetchSchedules, createSchedules } from '../api/schedule';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { fetchTasks, fetchClasses } from '../api/tasks';
+import { getAcceptedSessions } from '../api/planner';
+import { createSchedules, fetchSchedules } from '../api/schedule';
 
 export default function CalendarScreen() {
   const { t } = useTranslation();
-  const [events, setEvents] = useState([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
   
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [startTime, setStartTime] = useState(new Date());
-  const [endTime, setEndTime] = useState(new Date(new Date().getTime() + 60 * 60 * 1000));
+  const [tasks, setTasks] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [aiSessions, setAiSessions] = useState([]);
+  const [userSchedules, setUserSchedules] = useState([]);
 
-  const [pickerMode, setPickerMode] = useState('date');
-  const [activeTarget, setActiveTarget] = useState(null);
-  const [showPicker, setShowPicker] = useState(false);
-  
-  const [isSaving, setIsSaving] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [startTime, setStartTime] = useState('10:00');
+  const [endTime, setEndTime] = useState('11:00');
+  const [isRecurring, setIsRecurring] = useState(false);
 
-  const loadSchedules = async () => {
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [markedDates, setMarkedDates] = useState({});
+  const [dayAgenda, setDayAgenda] = useState([]);
+
+  const loadCalendarData = async () => {
     try {
-      const data = await fetchSchedules();
-      const sortedData = data.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
-      setEvents(sortedData);
+      const fetchedTasks = await fetchTasks().catch(() => []);
+      const fetchedClasses = await fetchClasses().catch(() => []);
+      const fetchedSessions = await getAcceptedSessions().catch(() => []);
+      const fetchedSchedules = await fetchSchedules().catch(() => []); // 🌟 Fix órák lekérése!
+
+      const formattedAiSessions = fetchedSessions.map(session => {
+        const startDate = new Date(session.start_time);
+        const endDate = new Date(session.end_time);
+
+        const dateKey = startDate.toISOString().split('T')[0];
+        const startTimeStr = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const endTimeStr = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return {
+          id: `ai-${session.id}`,
+          title: `Study: ${session.task_title || 'Task'}`,
+          className: session.class_name,
+          date: dateKey,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          color: '#8b5cf6'
+        };
+      });
+
+      setTasks(fetchedTasks);
+      setClasses(fetchedClasses);
+      setAiSessions(formattedAiSessions);
+      setUserSchedules(fetchedSchedules);
+
+      processCalendarEvents(fetchedTasks, fetchedClasses, formattedAiSessions, fetchedSchedules, selectedDate);
+
     } catch (error) {
-      console.error(error);
+      console.error("Hiba a naptár adatok betöltésekor:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -52,131 +82,230 @@ export default function CalendarScreen() {
   };
 
   useEffect(() => {
-    loadSchedules();
+    loadCalendarData();
   }, []);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    loadSchedules();
+    loadCalendarData();
   };
 
-  const combineDateAndTime = (dateObj, timeObj) => {
-    const combined = new Date(dateObj);
-    combined.setHours(timeObj.getHours());
-    combined.setMinutes(timeObj.getMinutes());
-    combined.setSeconds(0);
-    combined.setMilliseconds(0);
-    return combined;
-  };
-
-  const handleCreateSchedules = async () => {
-    if (!title.trim()) {
-      alert(t('fillAllFields'));
+  const handleSaveSchedule = async () => {
+    if (!eventTitle.trim()) {
+      Alert.alert(t('errorTitle'), t('fillEventTitle'));
       return;
     }
 
-    const finalStart = combineDateAndTime(selectedDate, startTime);
-    const finalEnd = combineDateAndTime(selectedDate, endTime);
-
-    if (finalEnd <= finalStart) {
-      alert(t('endTimeError'));
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      Alert.alert(t('errorTitle'), t('invalidTimeFormat'));
       return;
     }
 
-    setIsSaving(true);
     try {
-      const newEvent = await createSchedules({
-        title: title,
-        start_time: finalStart.toISOString(),
-        end_time: finalEnd.toISOString(),
-        is_recurring: false
-      });
+      const startDateTimeISO = `${selectedDate}T${startTime}:00`;
+      const endDateTimeISO = `${selectedDate}T${endTime}:00`;
 
-      setEvents(prev => [...prev, newEvent].sort((a, b) => new Date(a.start_time) - new Date(b.start_time)));
-      setTitle('');
-      setIsModalVisible(false);
+      const payload = {
+        title: eventTitle,
+        start_time: startDateTimeISO,
+        end_time: endDateTimeISO,
+        is_recurring: isRecurring
+      };
+
+      await createSchedules(payload);
+
+      Alert.alert(t('successTitle'), t('scheduleCreatedSuccess'));
+      setModalVisible(false);
+      setEventTitle('');
+      setStartTime('10:00');
+      setEndTime('11:00');
+      setIsRecurring(false);
+      
+      loadCalendarData();
     } catch (error) {
       console.error(error);
-      alert(t('scheduleCreateFailed'));
-    } finally {
-      setIsSaving(false);
+      Alert.alert(t('errorTitle'), error.detail || t('scheduleCreationFailed'));
     }
   };
 
-  const onPickerChange = (event, date) => {
-    if (event.type === 'dismissed') {
-      setShowPicker(false);
-      return;
+  const processCalendarEvents = (allTasks, allClasses, allAi, allSchedules = [], targetDate) => {
+    const marks = {};
+
+    allTasks.forEach(task => {
+      if (!task.deadline) return;
+      if (task.is_completed || task.completed || task.status === 'completed') return;
+      const dateKey = task.deadline.split('T')[0];
+      
+      if (!marks[dateKey]) marks[dateKey] = { dots: [] };
+      
+      const isExam = task.type === 'exam';
+      marks[dateKey].dots.push({
+        key: `task-${task.id}`,
+        color: isExam ? '#ef4444' : '#3b82f6',
+      });
+    });
+
+    allAi.forEach(session => {
+      const dateKey = session.date;
+      if (!marks[dateKey]) marks[dateKey] = { dots: [] };
+      
+      marks[dateKey].dots.push({
+        key: `ai-${session.id}`,
+        color: session.color || '#8b5cf6'
+      });
+    });
+
+    allSchedules.forEach(sched => {
+      if (!sched.start_time) return;
+      const dateKey = sched.start_time.split('T')[0];
+      if (!marks[dateKey]) marks[dateKey] = { dots: [] };
+      
+      marks[dateKey].dots.push({
+        key: `sched-${sched.id}`,
+        color: '#10b981'
+      });
+    });
+
+    if (!marks[targetDate]) {
+      marks[targetDate] = { selected: true, selectedColor: '#1e3a8a' };
+    } else {
+      marks[targetDate] = {
+        ...marks[targetDate],
+        selected: true,
+        selectedColor: '#1e3a8a'
+      };
     }
 
-    if (!date) return;
+    setMarkedDates(marks);
+    updateAgendaForDate(targetDate, allTasks, allClasses, allAi, allSchedules);
+  };
 
-    if (activeTarget === 'dateOnly') {
-      setShowPicker(false);
-      setSelectedDate(date);
-    } else if (activeTarget === 'start') {
-      if (pickerMode === 'date') {
-        setSelectedDate(date);
-        setPickerMode('time');
-      } else {
-        setShowPicker(false);
-        setStartTime(date);
+  const handleDayPress = (day) => {
+    const dateStr = day.dateString;
+    setSelectedDate(dateStr);
+
+    processCalendarEvents(tasks, classes, aiSessions, userSchedules, dateStr);
+    updateAgendaForDate(dateStr, tasks, classes, aiSessions, userSchedules);
+  };
+
+  const updateAgendaForDate = (dateStr, allTasks, allClasses, allAi, allSchedules = []) => {
+    const agenda = [];
+
+    allTasks.forEach(t => {
+      if (t.deadline && t.deadline.split('T')[0] === dateStr) {
+        if (t.is_completed || t.completed || t.status === 'completed') return;
+        agenda.push({
+          id: `task-${t.id}`,
+          title: t.title,
+          subtitle: t.type ? t.type.toUpperCase() : 'TASK',
+          type: 'deadline',
+          color: t.type === 'exam' ? '#ef4444' : '#3b82f6',
+          icon: t.type === 'exam' ? 'school-outline' : 'document-text-outline'
+        });
       }
-    } else if (activeTarget === 'end') {
-      if (pickerMode === 'date') {
-        setSelectedDate(date);
-        setPickerMode('time');
-      } else {
-        setShowPicker(false);
-        setEndTime(date);
+    });
+
+    allAi.forEach(s => {
+      if (s.date === dateStr) {
+        agenda.push({
+          id: `ai-${s.id}`,
+          title: s.title,
+          subtitle: `${s.startTime} - ${s.endTime}`,
+          type: 'ai_session',
+          color: '#8b5cf6',
+          icon: 'sparkles-outline'
+        });
       }
-    }
+    });
+
+    allSchedules.forEach(sched => {
+      if (sched.start_time && sched.start_time.split('T')[0] === dateStr) {
+        const startT = sched.start_time.split('T')[1].substring(0, 5);
+        const endT = sched.end_time.split('T')[1].substring(0, 5);
+        
+        agenda.push({
+          id: `sched-${sched.id}`,
+          title: sched.title,
+          subtitle: `${startT} - ${endT} ${sched.is_recurring ? '(Ismétlődő)' : ''}`,
+          type: 'user_schedule',
+          color: '#10b981',
+          icon: 'barbell-outline'
+        });
+      }
+    });
+
+    setDayAgenda(agenda);
   };
 
-  const openPicker = (target, mode) => {
-    setActiveTarget(target);
-    setPickerMode(mode);
-    setShowPicker(true);
+  const formatHeaderDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
   };
 
-  const formatDateTime = (isoString) => {
-    const d = new Date(isoString);
-    const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `${dateStr} @ ${timeStr}`;
-  };
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1e3a8a" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f5f7fb' }}>
       <ScrollView
-        style={styles.container}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       >
-        <Text style={styles.screenTitle}>{t('calendar')}</Text>
-        <Text style={styles.subTitle}>{t('setYourSchedule')}</Text>
+        {/* calendar */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            current={selectedDate}
+            onDayPress={handleDayPress}
+            markingType={'multi-dot'}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: '#ffffff',
+              calendarBackground: '#ffffff',
+              textSectionTitleColor: '#b6c1cd',
+              selectedDayBackgroundColor: '#1e3a8a',
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: '#10b981',
+              dayTextColor: '#2d4150',
+              textDisabledColor: '#d9e1e8',
+              dotColor: '#00adf5',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#1e3a8a',
+              disabledArrowColor: '#d9e1e8',
+              monthTextColor: '#1e3a8a',
+              indicatorColor: 'blue',
+              textDayFontWeight: '500',
+              textMonthFontWeight: 'bold',
+              textDayHeaderFontWeight: 'bold',
+              textDayFontSize: 14,
+              textMonthFontSize: 16,
+              textDayHeaderFontSize: 12
+            }}
+          />
+        </View>
 
-        <View style={styles.timelineContainer}>
-          <Text style={styles.sectionTitle}>{t('yourEvents')}</Text>
-
-          {events.length === 0 ? (
-            <Text style={styles.emptyText}>{t('noEvents')}</Text>
+        {/* daily schedule */}
+        <View style={styles.agendaContainer}>
+          <Text style={styles.agendaTitle}>{formatHeaderDate(selectedDate)}</Text>
+          
+          {dayAgenda.length === 0 ? (
+            <View style={styles.emptyAgendaBox}>
+              <Ionicons name="cafe-outline" size={36} color="#9ca3af" />
+              <Text style={styles.emptyAgendaText}>{t('noTasksOrStudySessions')}</Text>
+            </View>
           ) : (
-            events.map((event) => (
-              <View key={event.id} style={styles.timelineItem}>
-                <View style={styles.timeBlock}>
-                  <Text style={styles.timeText}>{new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                  <Text style={styles.dateText}>{new Date(event.start_time).toLocaleDateString([], { month: 'short', day: 'numeric' })}</Text>
+            dayAgenda.map((item) => (
+              <View key={item.id} style={[styles.agendaCard, { borderLeftColor: item.color }]}>
+                <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
+                  <Ionicons name={item.icon} size={22} color={item.color} />
                 </View>
-                <View style={styles.timelineDivider}>
-                  <View style={styles.timelineDot} />
-                  <View style={styles.timelineLine} />
-                </View>
-                <View style={styles.eventCard}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  <Text style={styles.eventDuration}>
-                    Until: {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
-                    {new Date(event.end_time).getDate() !== new Date(event.start_time).getDate() ? ' (+1 day)' : ''}
-                  </Text>
+                <View style={styles.agendaInfo}>
+                  <Text style={styles.eventTitle}>{item.title}</Text>
+                  <Text style={[styles.eventSubtitle, { color: item.color }]}>{item.subtitle}</Text>
                 </View>
               </View>
             ))
@@ -184,111 +313,128 @@ export default function CalendarScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => setIsModalVisible(true)}>
-        <Ionicons name="calendar-number-outline" size={26} color="#fff" />
+      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+        <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
 
-      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalOverlay}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? "padding" : "height"} style={{ width: '100%' }}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{t('createSchedule') || 'Add Busy Block'}</Text>
-                  <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('addFixedProgram')}</Text>
+            <Text style={{ color: '#6b7280', marginBottom: 15 }}>{t('selectedDate')}: {selectedDate}</Text>
 
-                <Text style={styles.inputLabel}>{t('taskTitle') || 'Activity/Routine Title'}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('taskTitlePlace') || 'e.g., Working shift, Linear Algebra Exam'}
-                  placeholderTextColor="#9ca3af"
-                  value={title}
-                  onChangeText={setTitle}
+            <TextInput 
+              style={styles.input} 
+              placeholder={t('programTitlePlace')} 
+              value={eventTitle}
+              onChangeText={setEventTitle}
+              placeholderTextColor="#9ca3af"
+            />
+
+            <View style={styles.rowInputs}>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text style={styles.inputLabel}>{t('startTime')} (HH:MM)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="10:00" 
+                  value={startTime}
+                  onChangeText={setStartTime}
+                  maxLength={5}
                 />
-
-                <Text style={styles.inputLabel}>{t('whichDay')}</Text>
-                <TouchableOpacity style={styles.fullWidthPickerBtn} onPress={() => openPicker('dateOnly', 'date')}>
-                  <Ionicons name="calendar-outline" size={20} color="#1e3a8a" style={{ marginRight: 10 }} />
-                  <Text style={styles.pickerBtnText}>
-                    {selectedDate.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  </Text>
-                </TouchableOpacity>
-
-                <Text style={styles.inputLabel}>{t('whatTime')}</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 }}>
-                  <TouchableOpacity style={styles.timePickerBtn} onPress={() => openPicker('start', 'time')}>
-                    <Text style={styles.timePickerLabel}>{t('startTime')}</Text>
-                    <Text style={styles.timePickerValue}>{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.timePickerBtn} onPress={() => openPicker('end', 'time')}>
-                    <Text style={styles.timePickerLabel}>{t('endTime')}</Text>
-                    <Text style={styles.timePickerValue}>{endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {showPicker && (
-                  <DateTimePicker
-                    value={activeTarget === 'start' ? startTime : activeTarget === 'end' ? endTime : selectedDate}
-                    mode={pickerMode}
-                    is24Hour={true}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={onPickerChange}
-                  />
-                )}
-
-                <TouchableOpacity style={styles.saveButton} onPress={handleCreateSchedules} disabled={isSaving}>
-                  {isSaving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('save')}</Text>}
-                </TouchableOpacity>
               </View>
-            </KeyboardAvoidingView>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.inputLabel}>{t('endTime')} (HH:MM)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="11:30" 
+                  value={endTime}
+                  onChangeText={setEndTime}
+                  maxLength={5}
+                />
+              </View>
+            </View>
+
+            <View style={styles.switchContainer}>
+              <Text style={{ fontWeight: '600', color: '#374151' }}>{t('repeatWeekly')}</Text>
+              <Switch value={isRecurring} onValueChange={setIsRecurring} />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={{ color: '#6b7280', fontWeight: '600' }}>{t('cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveSchedule}>
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>{t('save')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20 },
-  screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a', marginTop: 30 },
-  subTitle: { fontSize: 14, color: '#6b7280', marginTop: 5, marginBottom: 25, lineHeight: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 20 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
+  calendarContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    margin: 15,
+    paddingBottom: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  agendaContainer: { paddingHorizontal: 20, marginTop: 5 },
+  agendaTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15, textTransform: 'capitalize' },
   
-  timelineContainer: { marginTop: 10 },
-  timelineItem: { flexDirection: 'row', height: 85 },
-  timeBlock: { width: 70, justifyContent: 'flex-start', paddingTop: 4 },
-  timeText: { fontSize: 14, fontWeight: 'bold', color: '#1f2937' },
-  dateText: { fontSize: 11, color: '#6b7280', marginTop: 2, fontWeight: '500' },
-  
-  timelineDivider: { alignItems: 'center', marginHorizontal: 12 },
-  timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#2563eb', zIndex: 1 },
-  timelineLine: { width: 2, flex: 1, backgroundColor: '#e5e7eb', marginTop: -4 },
-  
-  eventCard: { flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 12, height: 68, borderWidth: 1, borderColor: '#e5e7eb', justifyContent: 'center' },
+  agendaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 5,
+    borderLeftColor: '#e5e7eb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb'
+  },
+  iconContainer: { padding: 8, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  agendaInfo: { flex: 1, marginLeft: 15 },
   eventTitle: { fontSize: 15, fontWeight: 'bold', color: '#1f2937' },
-  eventDuration: { fontSize: 12, color: '#6b7280', marginTop: 4 },
-  
-  emptyText: { color: '#6b7280', fontStyle: 'italic', textAlign: 'center', marginTop: 20 },
-  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#1e3a8a', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  eventSubtitle: { fontSize: 12, fontWeight: '600', marginTop: 2 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
-  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 8, marginTop: 5 },
-  input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 15 },
-  
-  fullWidthPickerBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6', padding: 14, borderRadius: 8, marginBottom: 15 },
-  pickerBtnText: { fontSize: 15, color: '#1f2937', fontWeight: '500' },
+  emptyAgendaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', borderStyle: 'dashed' },
+  emptyAgendaText: { color: '#6b7280', fontSize: 13, marginTop: 8, textAlign: 'center', paddingHorizontal: 20 },
 
-  timePickerBtn: { flex: 1, backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, alignItems: 'center', marginHorizontal: 5 },
-  timePickerLabel: { fontSize: 11, fontWeight: 'bold', color: '#6b7280' },
-  timePickerValue: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', marginTop: 4 },
-  
-  saveButton: { backgroundColor: '#ef4444', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 5 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  // 🌟 MODAL ÉS FAB ZSENIÁLIS STÍLUSA
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#1e3a8a',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: '#fff', width: '85%', padding: 25, borderRadius: 16, elevation: 5 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 5 },
+  inputLabel: { fontSize: 12, fontWeight: '600', color: '#4b5563', marginBottom: 4 },
+  input: { borderWidth: 1, borderColor: '#e5e7eb', padding: 12, borderRadius: 8, marginBottom: 12, fontSize: 14, color: '#1f2937' },
+  rowInputs: { flexDirection: 'row', justifyContent: 'space-between' },
+  switchContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 15 },
+  cancelBtn: { padding: 12, marginRight: 15 },
+  saveBtn: { backgroundColor: '#10b981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' }
 });

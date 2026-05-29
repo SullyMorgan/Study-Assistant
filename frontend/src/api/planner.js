@@ -23,3 +23,13 @@ export const acceptStudyPlan = async () => {
     throw error.response ? error.response.data : new Error('Failed to accept plan');
   }
 };
+
+export const getAcceptedSessions = async () => {
+  try {
+    const response = await apiClient.get('/generate/accepted-calendar-sessions');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch accepted sessions', error);
+    return [];
+  }
+};

@@ -42,6 +42,9 @@ def get_study_plan(
       status_code=status.HTTP_404_NOT_FOUND,
       detail="No tasks or materials found to generate a study plan."
     )
+  
+  planner.save_planned_sessions(db, current_user.id, plan)
+
   return schemas.PlanOut(suggested_plan=plan)
 
 @router.post("/accept-plan", status_code=status.HTTP_200_OK)
@@ -50,6 +53,12 @@ def accept_study_plan(
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
+  db.query(models.PlannedSession).filter(
+     models.PlannedSession.user_id == current_user.id,
+     models.PlannedSession.is_accepted == True,
+     models.PlannedSession.start_time >= datetime.now()
+  ).delete()
+
   sessions = db.query(models.PlannedSession).filter(
     models.PlannedSession.user_id == current_user.id,
     models.PlannedSession.is_accepted == False
@@ -108,3 +117,28 @@ def generate_and_save_plan(
        "message": "Plan generated and saved as draft",
        "count": len(recommendations)
     }
+
+@router.get("/accepted-calendar-sessions", status_code=status.HTTP_200_OK)
+def get_accepted_calendar_sessions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    sessions = db.query(models.PlannedSession).filter(
+        models.PlannedSession.user_id == current_user.id,
+        models.PlannedSession.is_accepted == True
+    ).all()
+    
+    result = []
+    for s in sessions:
+        task = db.query(models.Task).filter(models.Task.id == s.task_id).first()
+        related_class = db.query(models.Class).filter(models.Class.id == task.class_id).first() if task else None
+        
+        result.append({
+            "id": s.id,
+            "start_time": s.start_time.isoformat() if hasattr(s.start_time, "isoformat") else s.start_time,
+            "end_time": s.end_time.isoformat() if hasattr(s.end_time, "isoformat") else s.end_time,
+            "task_title": task.title if task else "Study Session",
+            "class_name": related_class.name if related_class else "General"
+        })
+        
+    return result

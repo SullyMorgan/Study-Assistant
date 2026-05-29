@@ -1,0 +1,214 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Platform
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { getStudyPlan, acceptStudyPlan } from '../api/planner';
+import { useTranslation } from 'react-i18next';
+
+export default function PlannerScreen() {
+  const { t } = useTranslation();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [plan, setPlan] = useState([]);
+  const [hasGenerated, setHasGenerated] = useState(false);
+
+  // default settings
+  const [sleepStart, setSleepStart] = useState(23);
+  const [sleepEnd, setSleepEnd] = useState(8);
+  const [maxSessions, setMaxSessions] = useState(3);
+
+  const handleGeneratePlan = async () => {
+    setIsLoading(true);
+    try {
+      const suggestedPlan = await getStudyPlan(sleepStart, sleepEnd, maxSessions);
+
+      // debug
+      console.log("Suggested Plan:", suggestedPlan);
+      setPlan(suggestedPlan || []);
+      setHasGenerated(true);
+    } catch (error) {
+      console.error(error);
+      Alert.alert(t('errorTitle'), error.message || t('failedToGeneratePlan'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAcceptPlan = async () => {
+    setIsAccepting(true);
+    try {
+      await acceptStudyPlan();
+      Alert.alert(t('planAccepted'), t('planAcceptedMessage'));
+      setPlan([]);
+      setHasGenerated(false);
+    } catch (error) {
+      console.error(error);
+      Alert.alert(t('errorTitle'), error.message || t('failedToAcceptPlan'));
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
+  // date formatter aux func
+  const formatDateTime = (isoString) => {
+    const date = new Date(isoString);
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return { dateStr, timeStr };
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('studyPlan')}</Text>
+        <Text style={styles.subtitle}>
+          {t('studyPlanSubtitle')}
+        </Text>
+      </View>
+
+      {/* until there is no  generated plan */}
+      {!hasGenerated && !isLoading && (
+        <View style={styles.welcomeBox}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="sparkles" size={40} color="#8b5cf6" />
+          </View>
+          <Text style={styles.welcomeTitle}>{t('welcomeToStudyPlan')}</Text>
+          <Text style={styles.welcomeText}>
+            {t('clickToGeneratePlan')}
+          </Text>
+
+          <View style={styles.settingsPreview}>
+            <Text style={styles.settingsText}>{sleepStart}:00 - {sleepEnd}:00</Text>
+            <Text style={styles.settingsText}>{t('maxSessions')}: {maxSessions}</Text>
+          </View>
+
+          <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
+            <Ionicons name="flash" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.generateButtonText}>{t('generatePlan')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isLoading && (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="large" color="#8b5cf6" />
+          <Text style={styles.loadingText}>{t('generatingPlan')}</Text>
+        </View>
+      )}
+
+      {hasGenerated && !isLoading && (
+        <View style={{ flex: 1 }}>
+          <ScrollView style={styles.timelineScroll} showsVerticalScrollIndicator={false}>
+            {plan.length === 0 ? (
+              <View style={styles.emptyPlanBox}>
+                <Ionicons name="checkmark-done-circle-outline" size={50} color="#10b981" />
+                <Text style={styles.emptyPlanText}>{t('emptyPlan')}</Text>
+              </View>
+            ) : (
+              plan.map((item, index) => {
+                const { dateStr, timeStr } = formatDateTime(item.start);
+                const endInfo = formatDateTime(item.end);
+
+                return (
+                  <View key={index} style={styles.timelineNode}>
+                    <View style={styles.leftLineColumn}>
+                      <View style={styles.timelineDot} />
+                      {index !== plan.length - 1 && <View style={styles.verticalLine} />}
+                    </View>
+
+                    <View style={styles.cardContainer}>
+                      <View style={styles.dateBadge}>
+                        <Text style={styles.dateBadgeText}>{dateStr} | {timeStr} - {endInfo.timeStr}</Text>
+                      </View>
+
+                      <View style={styles.sessionCard}>
+                        <Text style={styles.className}>{item.class_name}</Text>
+                        <Text style={styles.taskTitle}>{item.task_title}</Text>
+                        <Text style={styles.messageText}>{item.message}</Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+
+          {plan.length > 0 && (
+            <View style={styles.actionContainer}>
+              <TouchableOpacity style={styles.declineButton} onPress={() => setHasGenerated(false)}>
+                <Text style={styles.declineButtonText}>{t('decline')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptPlan} disabled={isAccepting}>
+                {isAccepting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark" size={20} color="#fff" style={{ marginRight: 5 }} />
+                    <Text style={styles.acceptButtonText}>{t('accept')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f7fb', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  header: { marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a' },
+  subtitle: { fontSize: 13, color: '#6b7280', marginTop: 6, lineHeight: 18 },
+
+  // Welcome state
+  welcomeBox: { backgroundColor: '#fff', borderRadius: 16, padding: 25, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', marginTop: 30, elevation: 2 },
+  iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f3e8ff', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
+  welcomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 },
+  welcomeText: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  settingsPreview: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', backgroundColor: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 20 },
+  settingsText: { fontSize: 12, color: '#4b5563', fontWeight: '500' },
+  generateButton: { backgroundColor: '#8b5cf6', flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 25, borderRadius: 12, alignItems: 'center', elevation: 3 },
+  generateButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Loading state
+  loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 15, color: '#4b5563', fontSize: 14, textAlign: 'center', paddingHorizontal: 30 },
+
+  // Timeline list
+  timelineScroll: { flex: 1, marginTop: 10 },
+  timelineNode: { flexDirection: 'row', minHeight: 110 },
+  leftLineColumn: { alignItems: 'center', marginRight: 15, width: 20 },
+  timelineDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#8b5cf6', borderWidth: 3, borderColor: '#fff', zIndex: 2, elevation: 2, marginTop: 4 },
+  verticalLine: { width: 2, flex: 1, backgroundColor: '#e5e7eb', position: 'absolute', top: 12, bottom: 0 },
+  
+  cardContainer: { flex: 1, marginBottom: 20 },
+  dateBadge: { alignSelf: 'flex-start', backgroundColor: '#e0e7ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginBottom: 6 },
+  dateBadgeText: { fontSize: 12, fontWeight: 'bold', color: '#4338ca' },
+  sessionCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1 },
+  className: { fontSize: 12, fontWeight: 'bold', color: '#8b5cf6', textTransform: 'uppercase' },
+  taskTitle: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', marginTop: 2 },
+  messageText: { fontSize: 13, color: '#4b5563', marginTop: 8, fontStyle: 'italic' },
+
+  emptyPlanBox: { alignItems: 'center', marginTop: 50 },
+  emptyPlanText: { color: '#6b7280', textAlign: 'center', marginTop: 10, fontSize: 14 },
+
+  // Bottom action bar
+  actionContainer: { flexDirection: 'row', paddingVertical: 15, borderTopWidth: 1, borderTopColor: '#e5e7eb', backgroundColor: '#f5f7fb' },
+  declineButton: { flex: 1, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
+  declineButtonText: { color: '#6b7280', fontSize: 16, fontWeight: '600' },
+  acceptButton: { flex: 2, backgroundColor: '#10b981', flexDirection: 'row', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 2 },
+  acceptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+});
