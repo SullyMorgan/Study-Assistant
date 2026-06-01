@@ -2,7 +2,15 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 import models
 
-def get_free_slots(db: Session, user_id: int, start_date: datetime, end_date: datetime):
+SESSION_DURATION = 90
+BREAK_DURATION = 20
+
+def get_free_slots(
+    db: Session,
+    user_id: int,
+    start_date: datetime,
+    end_date: datetime
+):
     busy_events = db.query(models.UserSchedule).filter(
         models.UserSchedule.user_id == user_id,
         models.UserSchedule.start_time >= start_date,
@@ -30,32 +38,106 @@ def get_free_slots(db: Session, user_id: int, start_date: datetime, end_date: da
 
     return free_slots
 
-def calculate_priority(task):
-    score = int(task.related_class.difficulty)
+# how many sessions are needed for a task
+def get_required_sessions(task):
+    difficulty = int(task.related_class.difficulty)
 
-    required_sessions = 2
+    sessions = 2 + difficulty
+
+    if task.type == models.TaskType.exam:
+        sessions += 2
+
+    elif task.type == models.TaskType.project:
+        sessions += 1
+
+    return sessions
+
+# earliest day to start studying for a task based on its type
+def get_study_window_days(task):
+    if task.type == models.TaskType.exam:
+        return 7
+    elif task.type == models.TaskType.project:
+        return 5
+    
+    return 3
+
+def calculate_priority(task, reference_date):
+    difficulty = int(task.related_class.difficulty)
+
+    score = difficulty
+
     if task.type == models.TaskType.exam:
         score += 5
-        required_sessions = 5
+    elif task.type == models.TaskType.project:
+        score += 3
 
-    days_until = (task.deadline - datetime.now()).days
+    days_until = (
+        task.deadline - reference_date
+    ).total_seconds() / 86400
+
     if days_until < 0:
-        days_until = 0
-
-    # the closer the deadline, the higher the importance
+        return -9999
+    
     urgency_bonus = 20 / (days_until + 1)
 
-    if days_until <= 2:
-        required_sessions += 2
+    return score + urgency_bonus
 
-    final_score = score + urgency_bonus
-    return final_score, required_sessions
+def can_study_task(task, study_date):
+    window_days = get_study_window_days(task)
 
-def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: int = 8, max_sessions_per_day: int = 3, days_to_plan: int = 7):
+    earliest_study_date = task.deadline - timedelta(days=window_days)
+
+    return study_date >= earliest_study_date
+
+def get_best_task(task_pool, study_start):
+    candidates = []
+
+    for task_info in task_pool:
+        if task_info["sessions_left"] <= 0:
+            continue
+
+        task = task_info["model"]
+
+        if study_start >= task.deadline:
+            continue
+
+        if not can_study_task(task, study_start):
+            continue
+
+        priority = calculate_priority(task, study_start)
+
+        candidates.append({
+            "task_info": task_info,
+            "priority": priority
+        })
+
+    if not candidates:
+        return None
+    
+    candidates.sort(
+        key=lambda x: x["priority"],
+        reverse=True
+    )
+
+    return candidates[0]["task_info"]
+
+def generate_plan(
+    db: Session,
+    user_id: int,
+    sleep_start: int = 23,
+    sleep_end: int = 8,
+    max_sessions_per_day: int = 3,
+    days_to_plan: int = 7
+):
     start_date = datetime.now()
     end_date = start_date + timedelta(days=days_to_plan)
 
-    slots = get_free_slots(db, user_id, start_date, end_date)
+    slots = get_free_slots(
+        db,
+        user_id,
+        start_date,
+        end_date
+    )
 
     tasks = db.query(models.Task).join(models.Class).filter(
         models.Task.user_id == user_id,
@@ -63,95 +145,120 @@ def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: i
     ).all()
 
     task_pool = []
-    for t in tasks:
-        priority, sessions_needed = calculate_priority(t)
+
+    for task in tasks:
         task_pool.append({
-            "model": t,
-            "priority": priority,
-            "sessions_left": sessions_needed
+            "model": task,
+            "sessions_left": get_required_sessions(task)
         })
 
-    # sort by priority (highest first)
-    task_pool.sort(key=lambda x: x["priority"], reverse=True)
-
     recommendations = []
-    current_slot_idx = 0
     daily_session_counts = {}
+
+    current_slot_idx = 0
 
     while current_slot_idx < len(slots):
         slot = slots[current_slot_idx]
+
         study_start = slot["start"]
-        study_end_estimate = study_start + timedelta(minutes=90)
-        day_key = study_start.date().isoformat()
 
         if study_start > end_date:
             break
 
+        day_key = study_start.date().isoformat()
+
         if day_key not in daily_session_counts:
             daily_session_counts[day_key] = 0
 
-        if study_end_estimate.hour >= sleep_start or study_start.hour < sleep_end:
+        study_end_estimate = (
+            study_start +
+            timedelta(minutes=SESSION_DURATION)
+        )
+
+        # handle sleep hours
+        if (study_end_estimate.hour >= sleep_start or study_start.hour < sleep_end):
             if study_start.hour >= sleep_start:
-                next_morning = study_start.replace(hour=sleep_end, minute=0, second=0, microsecond=0) + timedelta(days=1)
+                next_morning = (
+                    study_start.replace(
+                        hour=sleep_end,
+                        minute=0,
+                        second=0,
+                        microsecond=0
+                    ) + timedelta(days=1)
+                )
             else:
-                next_morning = study_start.replace(hour=sleep_end, minute=0, second=0, microsecond=0)
+                next_morning = study_start.replace(
+                    hour=sleep_end,
+                    minute=0,
+                    second=0,
+                    microsecond=0
+                )
 
-            time_skipped = (next_morning - study_start).total_seconds() / 60
+            skipped = (next_morning - study_start).total_seconds() / 60
+
             slot["start"] = next_morning
-            slot["duration_minutes"] -= time_skipped
+            slot["duration_minutes"] -= skipped
 
-            if slot["duration_minutes"] < 90:
+            if slot["duration_minutes"] < SESSION_DURATION:
                 current_slot_idx += 1
+
             continue
 
+        # daily limit
         if daily_session_counts[day_key] >= max_sessions_per_day:
-            next_morning = study_start.replace(hour=sleep_end, minute=0, second=0, microsecond=0) + timedelta(days=1)
-            time_skipped = (next_morning - study_start).total_seconds() / 60
-            slot["start"] = next_morning
-            slot["duration_minutes"] -= time_skipped
+            next_morning = (study_start.replace(
+                hour=sleep_end,
+                minute=0,
+                second=0,
+                microsecond=0
+            ) + timedelta(days=1)
+            )
 
-            if slot["duration_minutes"] < 90:
+            skipped = (next_morning - study_start).total_seconds() / 60
+
+            slot["start"] = next_morning
+            slot["duration_minutes"] -= skipped
+
+            if slot["duration_minutes"] < SESSION_DURATION:
                 current_slot_idx += 1
+
             continue
 
-        # search for the most important task, which still needs sesh
-        current_task = None
-        for t_info in task_pool:
-            if t_info["sessions_left"] > 0 and study_start < t_info["model"].deadline:
-                current_task = t_info
-                break
+        if slot["duration_minutes"] < SESSION_DURATION:
+            current_slot_idx += 1
+            continue
+
+        current_task = get_best_task(task_pool, study_start)
 
         if not current_task:
-            break
-
-        if slot["duration_minutes"] >= 90:
-            study_end = slot["start"] + timedelta(minutes=90)
-            task_model = current_task["model"]
-
-            saved_start = datetime.fromtimestamp(study_start.timestamp())
-            saved_end = datetime.fromtimestamp(study_end.timestamp())
-            recommendations.append({
-                "id": 0,
-                "user_id": user_id,
-                "task_id": task_model.id,
-                "class_id": task_model.class_id,
-                "task_title": task_model.title,
-                "class_name": task_model.related_class.name,
-                "start_time": saved_start,
-                "end_time": saved_end,
-                "duration": 90,
-                "actual_duration": None,
-                "status": "planned",
-                "message": f"Recommended study session for '{task_model.title}' from class '{task_model.related_class.name}'"
-            })
-
-            daily_session_counts[day_key] += 1
-            current_task["sessions_left"] -= 1
-
-            slot["start"] = study_end + timedelta(minutes=10)
-            slot["duration_minutes"] -= (90 + 10)
-        else:
             current_slot_idx += 1
+            continue
+
+        task_model = current_task["model"]
+
+        study_end = (study_start + timedelta(minutes=SESSION_DURATION))
+
+        recommendations.append({
+            "id": 0,
+            "user_id": user_id,
+            "task_id": task_model.id,
+            "class_id": task_model.class_id,
+            "task_title": task_model.title,
+            "class_name": task_model.related_class.name,
+            "start_time": study_start,
+            "end_time": study_end,
+            "duration": SESSION_DURATION,
+            "status": "planned",
+            "message": f"Recommended study session for task '{task_model.title}' from class '{task_model.related_class.name}' starting at {study_start}."
+        })
+
+        current_task["sessions_left"] -= 1
+
+        daily_session_counts[day_key] += 1
+
+        slot["start"] = (study_end + timedelta(minutes=BREAK_DURATION))
+
+        slot["duration_minutes"] -= (SESSION_DURATION + BREAK_DURATION)
 
     return recommendations
 
