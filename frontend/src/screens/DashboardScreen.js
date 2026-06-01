@@ -123,10 +123,20 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
   const deadlines = tasks
-    .filter(t => !t.completed)
+    .filter(t => !t.is_completed && new Date(t.deadline) >= todayStart)
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-  const sortedTasks = [...tasks].sort((a, b) => a.is_completed - b.is_completed);
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.is_completed !== b.is_completed) {
+      return a.is_completed ? 1 : -1;
+    }
+
+    return new Date(a.deadline) - new Date(b.deadline);
+  });
 
   const getCategoryDetails = (type) => {
     switch (type) {
