@@ -47,7 +47,8 @@ export default function CalendarScreen() {
       const fetchedSessions = await getAcceptedSessions().catch(() => []);
       const fetchedSchedules = await fetchSchedules().catch(() => []); // 🌟 Fix órák lekérése!
 
-      const formattedAiSessions = fetchedSessions.map(session => {
+      const formattedAiSessions = fetchedSessions
+        .map(session => {
         const startDate = new Date(session.start_time);
         const endDate = new Date(session.end_time);
 

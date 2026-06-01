@@ -116,8 +116,8 @@ export default function PlannerScreen() {
               </View>
             ) : (
               plan.map((item, index) => {
-                const { dateStr, timeStr } = formatDateTime(item.start);
-                const endInfo = formatDateTime(item.end);
+                const { dateStr, timeStr } = formatDateTime(item.start_time);
+                const endInfo = formatDateTime(item.end_time);
 
                 return (
                   <View key={index} style={styles.timelineNode}>

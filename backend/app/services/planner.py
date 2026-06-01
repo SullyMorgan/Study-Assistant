@@ -99,6 +99,9 @@ def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: i
             time_skipped = (next_morning - study_start).total_seconds() / 60
             slot["start"] = next_morning
             slot["duration_minutes"] -= time_skipped
+
+            if slot["duration_minutes"] < 90:
+                current_slot_idx += 1
             continue
 
         if daily_session_counts[day_key] >= max_sessions_per_day:
@@ -106,6 +109,9 @@ def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: i
             time_skipped = (next_morning - study_start).total_seconds() / 60
             slot["start"] = next_morning
             slot["duration_minutes"] -= time_skipped
+
+            if slot["duration_minutes"] < 90:
+                current_slot_idx += 1
             continue
 
         # search for the most important task, which still needs sesh
@@ -120,17 +126,22 @@ def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: i
 
         if slot["duration_minutes"] >= 90:
             study_end = slot["start"] + timedelta(minutes=90)
-
-            rec_start = slot["start"].isoformat() if hasattr(slot["start"], "isoformat") else slot["start"]
-            rec_end = study_end.isoformat() if hasattr(study_end, "isoformat") else study_end
-
             task_model = current_task["model"]
+
+            saved_start = datetime.fromtimestamp(study_start.timestamp())
+            saved_end = datetime.fromtimestamp(study_end.timestamp())
             recommendations.append({
+                "id": 0,
+                "user_id": user_id,
                 "task_id": task_model.id,
+                "class_id": task_model.class_id,
                 "task_title": task_model.title,
                 "class_name": task_model.related_class.name,
-                "start": rec_start,
-                "end": rec_end,
+                "start_time": saved_start,
+                "end_time": saved_end,
+                "duration": 90,
+                "actual_duration": None,
+                "status": "planned",
                 "message": f"Recommended study session for '{task_model.title}' from class '{task_model.related_class.name}'"
             })
 
@@ -146,19 +157,26 @@ def generate_plan(db: Session, user_id: int, sleep_start: int = 23, sleep_end: i
 
 def save_planned_sessions(db: Session, user_id: int, recommendations: list):
     # delete old unaccepted sessions before saving new ones
-    db.query(models.PlannedSession).filter(
-        models.PlannedSession.user_id == user_id,
-        models.PlannedSession.is_accepted == False
+    db.query(models.StudySession).filter(
+        models.StudySession.user_id == user_id,
+        models.StudySession.status == "planned"
     ).delete()
 
     for rec in recommendations:
-        new_session = models.PlannedSession(
+        new_session = models.StudySession(
             user_id=user_id,
+            class_id=rec['class_id'],
             task_id=rec['task_id'],
-            start_time=rec['start'],
-            end_time=rec['end'],
-            is_accepted=False
+            start_time=rec['start_time'],
+            end_time=rec['end_time'],
+            duration=90,
+            status="planned"
         )
         db.add(new_session)
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error saving planned sessions: {e}")
+        raise e

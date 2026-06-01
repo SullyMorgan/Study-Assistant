@@ -49,19 +49,20 @@ def get_study_plan(
 
 @router.post("/accept-plan", status_code=status.HTTP_200_OK)
 def accept_study_plan(
-   background_tasks: BackgroundTasks,
+  background_tasks: BackgroundTasks,
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
-  db.query(models.PlannedSession).filter(
-     models.PlannedSession.user_id == current_user.id,
-     models.PlannedSession.is_accepted == True,
-     models.PlannedSession.start_time >= datetime.now()
-  ).delete()
+  #db.query(models.StudySession).filter(
+  #   models.StudySession.user_id == current_user.id,
+  #   models.StudySession.status == "planned",
+  #   models.StudySession.start_time >= datetime.now()
+  #).delete()
 
-  sessions = db.query(models.PlannedSession).filter(
-    models.PlannedSession.user_id == current_user.id,
-    models.PlannedSession.is_accepted == False
+  sessions = db.query(models.StudySession).filter(
+    models.StudySession.user_id == current_user.id,
+    models.StudySession.status == "planned",
+    models.StudySession.start_time >= datetime.now()
   ).all()
 
   if not sessions:
@@ -73,7 +74,7 @@ def accept_study_plan(
   has_push = current_user.push_subscription is not None
 
   for s in sessions:
-    s.is_accepted = True
+    s.status = "planned"
 
     if has_push:
        task = db.query(models.Task).filter(models.Task.id == s.task_id).first()
@@ -123,9 +124,9 @@ def get_accepted_calendar_sessions(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    sessions = db.query(models.PlannedSession).filter(
-        models.PlannedSession.user_id == current_user.id,
-        models.PlannedSession.is_accepted == True
+    sessions = db.query(models.StudySession).filter(
+        models.StudySession.user_id == current_user.id,
+        models.StudySession.status == "planned"
     ).all()
     
     result = []

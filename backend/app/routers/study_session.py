@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 import models, schemas
 from dependencies import get_db, get_current_user
 import json
+from typing import Optional
 
 router = APIRouter(
   prefix="/sessions",
@@ -46,31 +47,43 @@ def get_user_sessions(
     models.StudySession.user_id == current_user.id
   ).all()
   
+  for s in sessions:
+    if s.task:
+      s.task_title = s.task.title
+    if s.study_class:
+      s.class_name = s.study_class.name
+
   return sessions
 
 @router.post("/{session_id}/complete", status_code=status.HTTP_200_OK)
 def complete_study_session(
   session_id: int,
-  actual_duration_minutes: int,
+  actual_duration_minutes: Optional[int] = None,
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
-  session = db.query(models.PlannedSession).filter(
-    models.PlannedSession.id == session_id,
-    models.PlannedSession.user_id == current_user.id
+  session = db.query(models.StudySession).filter(
+    models.StudySession.id == session_id,
+    models.StudySession.user_id == current_user.id
   ).first()
 
   if not session:
     raise HTTPException(
       status_code=404,
-      detail="Planned study session not found."
+      detail="Study session not found."
     )
   
-  session.actual_duration_minutes = actual_duration_minutes
+  session.status = "completed"
+  if actual_duration_minutes is not None:
+    session.actual_duration = actual_duration_minutes
+  else:
+    session.actual_duration = session.duration
 
-  task = db.query(models.Task).filter(models.Task.id == session.task_id).first()
-  if task:
-    task.is_completed = True
+  if session.task_id:
+    task = db.query(models.Task).filter(models.Task.id == session.task_id).first()
+    if task:
+      task.is_completed = True
+      task.status = "completed"
 
   db.commit()
   return {"message": "Study session marked as completed."}
