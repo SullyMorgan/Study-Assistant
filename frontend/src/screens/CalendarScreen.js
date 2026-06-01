@@ -19,7 +19,7 @@ import { fetchTasks, fetchClasses } from '../api/tasks';
 import { getAcceptedSessions } from '../api/planner';
 import { createSchedules, fetchSchedules } from '../api/schedule';
 
-export default function CalendarScreen() {
+export default function CalendarScreen({ navigation }) {
   const { t } = useTranslation();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +58,7 @@ export default function CalendarScreen() {
 
         return {
           id: `ai-${session.id}`,
-          title: `Study: ${session.task_title || 'Task'}`,
+          title: `Study for: ${session.task_title || 'Task'}`,
           className: session.class_name,
           date: dateKey,
           startTime: startTimeStr,
@@ -210,12 +210,15 @@ export default function CalendarScreen() {
     allAi.forEach(s => {
       if (s.date === dateStr) {
         agenda.push({
-          id: `ai-${s.id}`,
+          id: s.id,
           title: s.title,
           subtitle: `${s.startTime} - ${s.endTime}`,
           type: 'ai_session',
           color: '#8b5cf6',
-          icon: 'sparkles-outline'
+          icon: 'sparkles-outline',
+          className: s.className,
+          startTime: s.startTime,
+          endTime: s.endTime
         });
       }
     });
@@ -228,7 +231,7 @@ export default function CalendarScreen() {
         agenda.push({
           id: `sched-${sched.id}`,
           title: sched.title,
-          subtitle: `${startT} - ${endT} ${sched.is_recurring ? '(Ismétlődő)' : ''}`,
+          subtitle: `${startT} - ${endT} ${sched.is_recurring ? t('repeatWeekly') : ''}`,
           type: 'user_schedule',
           color: '#10b981',
           icon: 'barbell-outline'
@@ -299,17 +302,45 @@ export default function CalendarScreen() {
               <Text style={styles.emptyAgendaText}>{t('noTasksOrStudySessions')}</Text>
             </View>
           ) : (
-            dayAgenda.map((item) => (
-              <View key={item.id} style={[styles.agendaCard, { borderLeftColor: item.color }]}>
-                <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
-                  <Ionicons name={item.icon} size={22} color={item.color} />
-                </View>
-                <View style={styles.agendaInfo}>
-                  <Text style={styles.eventTitle}>{item.title}</Text>
-                  <Text style={[styles.eventSubtitle, { color: item.color }]}>{item.subtitle}</Text>
-                </View>
-              </View>
-            ))
+            dayAgenda.map((item) => {
+              const isAiSession = item.type === 'ai_session' || (typeof item.id === 'string' && item.id.startsWith('ai-'));
+
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.agendaCard, { borderLeftColor: item.color }]}
+                  disabled={!isAiSession}
+                  onPress={() => {
+                    const numericId = typeof item.id === 'string'
+                      ? parseInt(item.id.replace('ai-', ''), 10)
+                      : item.id;
+
+                    navigation.navigate('StudySession', {
+                      sessionId: numericId,
+                      taskTitle: item.title,
+                      className: item.className,
+                      plannedDuration: item.duration || 90
+                    });
+                  }}
+                  activeOpacity={isAiSession ? 0.7 : 1}
+                >
+                  <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
+                    <Ionicons name={item.icon} size={22} color={item.color} />
+                  </View>
+                  <View style={styles.agendaInfo}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.eventTitle}>{item.title}</Text>
+                        <Text style={[styles.eventSubtitle, { color: item.color }]}>{item.subtitle}</Text>
+                      </View>
+                      {isAiSession && (
+                        <Ionicons name="play-circle" size={26} color={item.color} style={{ marginLeft: 10 }} />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -356,7 +387,7 @@ export default function CalendarScreen() {
             </View>
 
             <View style={styles.switchContainer}>
-              <Text style={{ fontWeight: '600', color: '#374151' }}>{t('repeatWeekly')}</Text>
+              <Text style={{ fontWeight: '600', color: '#374151' }}>{t('repeatWeekly.')}</Text>
               <Switch value={isRecurring} onValueChange={setIsRecurring} />
             </View>
 

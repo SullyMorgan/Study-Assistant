@@ -126,7 +126,6 @@ export default function DashboardScreen({ navigation }) {
   const deadlines = tasks
     .filter(t => !t.completed)
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-
   const sortedTasks = [...tasks].sort((a, b) => a.is_completed - b.is_completed);
 
   const getCategoryDetails = (type) => {

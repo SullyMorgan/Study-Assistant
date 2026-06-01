@@ -33,7 +33,7 @@ export default function MaterialsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const[isUploadModalVisible, setIsUploadModalVisible] = useState(false);
+  const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
   const [uploadTitle, setUploadTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,9 +41,12 @@ export default function MaterialsScreen() {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
-  const [aiQuiz, setAiQuiz] = useState(null);
+  const [aiQuiz, setAiQuiz] = useState([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
+
+  const [selectedAnswers, setSelectedAnswers] = useState({}); // { 0: 2, 1: 0 } -> kérdésIndex: választottIndex
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
 
   const loadMaterials = async () => {
     try {
@@ -95,7 +98,7 @@ export default function MaterialsScreen() {
 
     setIsUploading(true);
     try {
-      const response = await uploadMaterial(
+      await uploadMaterial(
         uploadTitle,
         selectedFile.uri,
         selectedFile.name,
@@ -142,7 +145,9 @@ export default function MaterialsScreen() {
   const handleViewDetails = async (material) => {
     setSelectedMaterial(material);
     setAiSummary('');
-    setAiQuiz(null);
+    setAiQuiz([]);
+    setSelectedAnswers({});
+    setQuizSubmitted(false);
     setActiveTab('summary');
     setIsDetailsModalVisible(true);
     setIsAiLoading(true);
@@ -164,8 +169,13 @@ export default function MaterialsScreen() {
       setIsAiLoading(true);
       try {
         const quizData = await getMaterialQuiz(selectedMaterial.id);
+        
+        console.log("Received quiz data:", JSON.stringify(quizData));
 
-        setAiQuiz(quizData.quiz || []);
+        const questionsArray = quizData.quiz;
+        setAiQuiz(questionsArray);
+        setSelectedAnswers({});
+        setQuizSubmitted(false);
       } catch (error) {
         console.error(error);
         Alert.alert(t('errorTitle'), error.message || t('quizFailed'));
@@ -173,6 +183,29 @@ export default function MaterialsScreen() {
         setIsAiLoading(false);
       }
     }
+  };
+
+  const handleSelectOption = (qIndex, oIdx) => {
+    if (quizSubmitted) return;
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [qIndex]: oIdx
+    }));
+  };
+
+  const calculateScore = () => {
+    let correctCount = 0;
+    aiQuiz.forEach((q, index) => {
+      if (selectedAnswers[index] === q.correct_option_index) {
+        correctCount++;
+      }
+    });
+    return correctCount;
+  };
+
+  const handleRestartQuiz = () => {
+    setSelectedAnswers({});
+    setQuizSubmitted(false);
   };
 
   if (isLoading) {
@@ -184,7 +217,7 @@ export default function MaterialsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f7db' }}>
+    <View style={{ flex: 1, backgroundColor: '#f5f7fb' }}>
       <View style={styles.container}>
         <Text style={styles.screenTitle}>{t('myMaterials')}</Text>
         <Text style={styles.subTitle}>{t('materialsSubtitle')}</Text>
@@ -202,7 +235,7 @@ export default function MaterialsScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.materialCard} onPress={() => handleViewDetails(item)}>
               <View style={styles.materialIconContainer}>
-                <Ionicons name="document-text" size={28} color="ef4444" />
+                <Ionicons name="document-text" size={28} color="#ef4444" />
               </View>
               <View style={styles.materialInfo}>
                 <Text style={styles.materialTitle} numberOfLines={1}>{item.title}</Text>
@@ -220,12 +253,13 @@ export default function MaterialsScreen() {
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
 
+      {/* UPLOAD MODAL */}
       <Modal visible={isUploadModalVisible} animationType="slide" transparent={true}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modaltitle}>{t('uploadMaterial')}</Text>
+                <Text style={styles.modalTitle}>{t('uploadMaterial')}</Text>
                 <TouchableOpacity onPress={() => setIsUploadModalVisible(false)}>
                   <Ionicons name="close" size={24} color="#6b7280" />
                 </TouchableOpacity>
@@ -263,6 +297,7 @@ export default function MaterialsScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* DETAILS MODAL */}
       <Modal visible={isDetailsModalVisible} animationType="slide" transparent={false}>
         <View style={styles.detailsContainer}>
           <View style={styles.detailsHeader}>
@@ -277,7 +312,7 @@ export default function MaterialsScreen() {
               style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
               onPress={() => handleTabChange('summary')}
             >
-              <Ionicons name="list-circle-outline" size={20} color={activeTab ==='summary' ? '#1e3a8a' : '#6b7280'} />
+              <Ionicons name="list-circle-outline" size={20} color={activeTab === 'summary' ? '#1e3a8a' : '#6b7280'} />
               <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>{t('summary')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -289,7 +324,7 @@ export default function MaterialsScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.detailsBody}>
+          <ScrollView style={styles.detailsBody} showsVerticalScrollIndicator={false}>
             {isAiLoading ? (
               <View style={styles.aiLoadingBox}>
                 <ActivityIndicator size="large" color="#1e3a8a" />
@@ -303,19 +338,92 @@ export default function MaterialsScreen() {
             ) : (
               <View style={styles.quizBox}>
                 <Text style={styles.summaryHeadline}>{t('testYourself')}</Text>
+                
+                {/* SCORE BANNER */}
+                {quizSubmitted && (
+                  <View style={styles.scoreBanner}>
+                    <Ionicons name="trophy" size={24} color="#f59e0b" />
+                    <Text style={styles.scoreText}>
+                      Eredmény: {calculateScore()} / {aiQuiz.length} ({Math.round((calculateScore() / aiQuiz.length) * 100)}%)
+                    </Text>
+                  </View>
+                )}
+
                 {aiQuiz && aiQuiz.length > 0 ? (
-                  aiQuiz.map((q, index) => (
-                    <View key={index} style={styles.quizCard}>
-                      <Text style={styles.quizQuestion}>{index + 1}. {q.question_text || q.text}</Text>
-                      {(q.options || ['A', 'B', 'C', 'D']).map((opt, oIdx) => (
-                        <View key={oIdx} style={styles.quizOptionBox}>
-                          <Text style={styles.quizOptionText}>{opt}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  ))
+                  aiQuiz.map((q, index) => {
+                    const questionText = q.question_text || q.text;
+                    const isAnswered = selectedAnswers[index] !== undefined;
+
+                    return (
+                      <View key={index} style={styles.quizCard}>
+                        <Text style={styles.quizQuestion}>{index + 1}. {questionText}</Text>
+                        
+                        {(q.options || []).map((opt, oIdx) => {
+                          const isSelected = selectedAnswers[index] === oIdx;
+                          const isCorrect = q.correct_option_index === oIdx;
+                          
+                          let optionStyle = styles.quizOptionBox;
+                          let optionTextStyle = styles.quizOptionText;
+
+                          if (quizSubmitted) {
+                            if (isCorrect) {
+                              optionStyle = [styles.quizOptionBox, styles.correctOption];
+                              optionTextStyle = styles.correctOptionText;
+                            } else if (isSelected && !isCorrect) {
+                              optionStyle = [styles.quizOptionBox, styles.wrongOption];
+                              optionTextStyle = styles.wrongOptionText;
+                            }
+                          } else if (isSelected) {
+                            optionStyle = [styles.quizOptionBox, styles.selectedOption];
+                            optionTextStyle = styles.selectedOptionText;
+                          }
+
+                          return (
+                            <TouchableOpacity
+                              key={oIdx}
+                              style={optionStyle}
+                              onPress={() => handleSelectOption(index, oIdx)}
+                              disabled={quizSubmitted}
+                            >
+                              <View style={styles.optionRow}>
+                                <Text style={optionTextStyle}>{opt}</Text>
+                                {quizSubmitted && isCorrect && <Ionicons name="checkmark-circle" size={18} color="#10b981" />}
+                                {quizSubmitted && isSelected && !isCorrect && <Ionicons name="close-circle" size={18} color="#ef4444" />}
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+
+                        {/* EXPLANATION TO SHOW AFTER SUBMIT */}
+                        {quizSubmitted && q.explanation && (
+                          <View style={styles.explanationBox}>
+                            <Text style={styles.explanationTitle}>Magyarázat:</Text>
+                            <Text style={styles.explanationText}>{q.explanation}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })
                 ) : (
                   <Text style={styles.emptyText}>{t('noQuiz')}</Text>
+                )}
+
+                {/* BOTTOM QUIZ CONTROLS */}
+                {aiQuiz && aiQuiz.length > 0 && (
+                  !quizSubmitted ? (
+                    <TouchableOpacity
+                      style={[styles.submitQuizBtn, Object.keys(selectedAnswers).length < aiQuiz.length && styles.disabledBtn]}
+                      onPress={() => setQuizSubmitted(true)}
+                      disabled={Object.keys(selectedAnswers).length < aiQuiz.length}
+                    >
+                      <Text style={styles.submitQuizBtnText}>{t('submitQuiz')}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.restartQuizBtn} onPress={handleRestartQuiz}>
+                      <Ionicons name="refresh" size={20} color="#1e3a8a" style={{ marginRight: 6 }} />
+                      <Text style={styles.restartQuizBtnText}>{t('restartQuiz')}</Text>
+                    </TouchableOpacity>
+                  )
                 )}
               </View>
             )}
@@ -377,9 +485,34 @@ const styles = StyleSheet.create({
   summaryHeadline: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15 },
   summaryText: { fontSize: 15, color: '#374151', lineHeight: 24 },
   
-  quizBox: { marginBottom: 30 },
-  quizCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#e5e7eb' },
-  quizQuestion: { fontSize: 15, fontWeight: 'bold', color: '#1f2937', marginBottom: 12 },
-  quizOptionBox: { backgroundColor: '#f3f4f6', padding: 10, borderRadius: 8, marginBottom: 6 },
-  quizOptionText: { fontSize: 14, color: '#4b5563' }
+  quizBox: { marginBottom: 50 },
+  quizCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1 },
+  quizQuestion: { fontSize: 15, fontWeight: 'bold', color: '#1f2937', marginBottom: 12, lineHeight: 20 },
+  
+  optionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  quizOptionBox: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#e5e7eb' },
+  quizOptionText: { fontSize: 14, color: '#4b5563', flex: 1 },
+  
+  selectedOption: { backgroundColor: '#eff6ff', borderColor: '#3b82f6' },
+  selectedOptionText: { color: '#1e40af', fontWeight: '600' },
+  
+  correctOption: { backgroundColor: '#d1fae5', borderColor: '#10b981' },
+  correctOptionText: { color: '#065f46', fontWeight: 'bold' },
+  
+  wrongOption: { backgroundColor: '#fee2e2', borderColor: '#ef4444' },
+  wrongOptionText: { color: '#991b1b', fontWeight: '600' },
+
+  scoreBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef3c7', padding: 15, borderRadius: 10, marginBottom: 20, borderWidth: 1, borderColor: '#fde68a' },
+  scoreText: { fontSize: 16, fontWeight: 'bold', color: '#92400e', marginLeft: 10 },
+
+  explanationBox: { marginTop: 12, padding: 12, backgroundColor: '#f9fafb', borderRadius: 6, borderLeftWidth: 3, borderLeftColor: '#3b82f6' },
+  explanationTitle: { fontSize: 13, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 2 },
+  explanationText: { fontSize: 13, color: '#4b5563', lineHeight: 18, fontStyle: 'italic' },
+
+  submitQuizBtn: { backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginTop: 10, elevation: 2 },
+  disabledBtn: { backgroundColor: '#9ca3af', elevation: 0 },
+  submitQuizBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  restartQuizBtn: { flexDirection: 'row', backgroundColor: '#fff', paddingVertical: 14, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 10, borderWidth: 1, borderColor: '#1e3a8a' },
+  restartQuizBtnText: { color: '#1e3a8a', fontSize: 16, fontWeight: 'bold' }
 });

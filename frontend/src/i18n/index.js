@@ -91,7 +91,7 @@ const resources = {
       "noTasksOrStudySessions": "Nincsenek feladatok vagy tanulási blokkok erre a napra.",
       "addFixedProgram": "Fix program hozzáadása",
       "selectedDate": "Kiválasztott nap",
-      "repeatWeekly": "Minden héten ismétlődjön?",
+      "repeatWeekly": "Ismétlődik hetente.",
       "startTime": "Kezdés időpontja",
       "endTime": "Befejezés időpontja",
       "programTitlePlace": "Esemény címe (pl. Edzés, Matek előadás)",
@@ -115,6 +115,11 @@ const resources = {
       "testYourself": "Teszteld tudásod ezzel a kvízzel!",
       "deleteConfirmTitle": "Tananyag törlése",
       "deleteConfirmMsg": "Biztosan törölni szeretnéd ezt a tananyagot?",
+      "submitQuiz": "Kvíz beküldése",
+      "restartQuiz": "Kvíz újraindítása",
+      "deleteFailed": "Nem sikerült törölni a tananyagot. Kérlek próbáld újra.",
+      "summaryFailed": "Nem sikerült generálni az összefoglalót. Kérlek próbáld újra.",
+      "quizFailed": "Nem sikerült generálni a kvízt. Kérlek próbáld újra.",
 
       // planner screen
       "studyPlan": "Tanulási terv készítése",
@@ -130,7 +135,22 @@ const resources = {
       "failedToAcceptPlan": "Sajnáljuk! Valami hiba történt a terv elfogadása közben. Kérlek próbáld újra.",
       "planAcceptedMessage": "Tanulási terv elfogadva! A naptárad frissült az új tanulási blokkokkal. Sok sikert a tanuláshoz!",
       "failedToGeneratePlan": "Sajnáljuk! Valami hiba történt a terv generálása közben. Kérlek próbáld újra.",
-      "planAccepted": "Terv elfogadva"
+      "planAccepted": "Terv elfogadva",
+
+      // session screen
+      "endSessionTitle": "Tanulás befejezése",
+      "endSessionMsg": "Biztosan be szeretnéd fejezni a tanulást?",
+      "continueStudying": "Tovább a tanulással",
+      "endSession": "Tanulás befejezése",
+      "sessionNotFound": "A tanulási folyamat nem található.",
+      "sessionSavedMsg": "A tanulási folyamat sikeresen mentve.",
+      "failedToSaveSession": "Sajnáljuk! Valami hiba történt a mentés közben. Kérlek próbáld újra.",
+
+      "easy": "Könnyű",
+      "medium": "Közepes",
+      "hard": "Nehéz",
+
+      "repeatWeekly.": "Ismétlődjön hetente?"
     }
   },
   en: {
@@ -168,6 +188,8 @@ const resources = {
       "cancel": "Cancel",
       "underDevelopment": "Under development",
       "regFailed": "Registration failed. Please try again.",
+      "filePickFailed": "File selection failed. Please try again.",
+      "pickPdf": "Pick a PDF",
 
       "dashboard": "Dashboard",
       "materials": "Materials",
@@ -222,7 +244,7 @@ const resources = {
       "noTasksOrStudySessions": "No tasks or study sessions scheduled for this day.",
       "addFixedProgram": "Add Fixed Program",
       "selectedDate": "Selected Date",
-      "repeatWeekly": "Repeat weekly?",
+      "repeatWeekly": "Recurring weekly.",
       "startTime": "Start Time",
       "endTime": "End Time",
       "programTitlePlace": "Event title (e.g. Gym, Math lecture)",
@@ -241,11 +263,15 @@ const resources = {
       "aiProcessing": "AI is processing your material. This may take a moment...",
       "noSummary": "No summary available.",
       "noQuiz": "No quiz available.",
-      "pickPdf": "Pick a PDF",
       "keySummaryPoint": "Key Bulletpoints",
       "testYourself": "Test yourself with this quiz!",
       "deleteConfirmTitle": "Delete Material",
       "deleteConfirmMsg": "Are you sure you want to delete this material?",
+      "submitQuiz": "Submit Quiz",
+      "restartQuiz": "Restart Quiz",
+      "deleteFailed": "Failed to delete material. Please try again.",
+      "summaryFailed": "Failed to generate summary. Please try again.",
+      "quizFailed": "Failed to generate quiz. Please try again.",
 
       // planner screen
       "studyPlan": "Plan your study sessions",
@@ -261,8 +287,23 @@ const resources = {
       "failedToAcceptPlan": "Sorry! Something went wrong while accepting the plan. Please try again.",
       "planAcceptedMessage": "Study plan accepted! Your calendar has been updated with your new study sessions. Good luck with your studies!",
       "failedToGeneratePlan": "Sorry! Something went wrong while generating the plan. Please try again.",
-      "planAccepted": "Plan Accepted"
+      "planAccepted": "Plan Accepted",
 
+      // session screen
+      "endSessionTitle": "End Session",
+      "endSessionMsg": "Are you sure you want to end your study session?",
+      "continueStudying": "Continue Studying",
+      "endSession": "End Session",
+      "sessionNotFound": "Study session not found.",
+      "sessionSavedMsg": "Your study session has been saved successfully!",
+      "failedToSaveSession": "Sorry! Something went wrong while saving your session. Please try again.",
+      "target:": "Target",
+
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+
+      "repeatWeekly.": "Repeat weekly?"
     }
   },
   ro: {
@@ -353,7 +394,8 @@ const resources = {
       "noTasksOrStudySessions": "Nu există sarcini sau sesiuni de studiu programate pentru această zi.",
       "addFixedProgram": "Adaugă program fix",
       "selectedDate": "Data selectată",
-      "repeatWeekly": "Repetă săptămânal?",
+      "repeatWeekly": "Se repetă săptămânal.",
+      "repeatWeekly.": "Repetă săptămânal?",
       "startTime": "Ora de început",
       "endTime": "Ora de sfârșit",
       "programTitlePlace": "Titlul evenimentului (ex. Sală de sport, Lecție de mate)",
@@ -376,7 +418,13 @@ const resources = {
       "testYourself": "Testează-te cu acest chestionar!",
       "deleteConfirmTitle": "Șterge material",
       "deleteConfirmMsg": "Sigur dorești să ștergi acest material?",
-
+      "submitQuiz": "Trimite chestionar",
+      "restartQuiz": "Reîncepe chestionar",
+      "deleteFailed": "Nu s-a putut șterge materialul. Vă rugăm să încercați din nou.",
+      "summaryFailed": "Nu s-a putut genera rezumatul. Vă rugăm să încercați din nou.",
+      "quizFailed": "Nu s-a putut genera chestionarul. Vă rugăm să încercați din nou.",
+      "filePickFailed": "Nu s-a putut selecta fișierul. Vă rugăm să încercați din nou.",
+      
       // planner screen
       "studyPlan": "Planifică-ți sesiunile de studiu",
       "studyPlanSubtitle": "Generează un plan de studiu personalizat bazat pe programul și preferințele tale.",
@@ -391,7 +439,22 @@ const resources = {
       "failedToAcceptPlan": "Ne pare rău! Ceva nu a mers bine în timp ce acceptai planul. Vă rugăm să încercați din nou.",
       "planAcceptedMessage": "Plan de studiu acceptat! Calendarul tău a fost actualizat cu noile sesiuni de studiu. Spor la învățat!",
       "failedToGeneratePlan": "Ne pare rău! Ceva a mers prost în timp ce generai planul. Vă rugăm să încercați din nou.",
-      "planAccepted": "Plan acceptat"
+      "planAccepted": "Plan acceptat",
+
+      // session screen
+      "endSessionTitle": "Încheie sesiunea",
+      "endSessionMsg": "Sigur dorești să închei sesiunea de studiu?",
+      "continueStudying": "Continuă să studiezi",
+      "endSession": "Încheie sesiunea",
+      "sessionNotFound": "Sesiune de studiu negăsită.",
+      "sessionSavedMsg": "Sesiunea ta de studiu a fost salvată cu succes!",
+      "failedToSaveSession": "Ne pare rău! Ceva a nu a mers bine în timp ce salvai sesiunea. Vă rugăm să încercați din nou.",
+      "target:": "Țintă",
+
+      "easy": "Ușor",
+      "medium": "Mediu",
+      "hard": "Dificil",
+
     }
   }
 };

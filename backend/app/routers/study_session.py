@@ -79,12 +79,6 @@ def complete_study_session(
   else:
     session.actual_duration = session.duration
 
-  if session.task_id:
-    task = db.query(models.Task).filter(models.Task.id == session.task_id).first()
-    if task:
-      task.is_completed = True
-      task.status = "completed"
-
   db.commit()
   return {"message": "Study session marked as completed."}
 

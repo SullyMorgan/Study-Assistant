@@ -16,6 +16,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ClassesScreen from '../screens/ClassScreen';
 import PlannerScreen from '../screens/PlannerScreen';
+import StudySessionScreen from '../screens/StudySessionScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -141,6 +142,11 @@ export default function AppNavigator() {
             name="Profile"
             component={ProfileScreen}
             options={{ title: t('myProfile'), headerShown: true, headerTintColor: '#1e3a8a' }}
+          />
+          <Stack.Screen
+            name="StudySession"
+            component={StudySessionScreen}
+            options={{ title: t('studySession'), headerShown: false }}
           />
       </Stack.Navigator>
     </NavigationContainer>

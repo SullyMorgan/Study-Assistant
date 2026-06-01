@@ -168,7 +168,7 @@ export default function ClassesScreen({ navigation }) {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                   <Text style={styles.inputLabel}>{t('difficulty')}</Text>
                   <Text style={{ fontSize: 12, color: getDifficultyDetails(difficulty), fontWeight: 'bold' }}>
-                    {difficulty <= 3 ? 'EASY' : difficulty <= 7 ? 'MEDIUM' : 'HARD'}
+                    {difficulty <= 3 ? t('easy') : difficulty <= 7 ? t('medium') : t('hard')}
                   </Text>
                 </View>
 
