@@ -53,11 +53,6 @@ def accept_study_plan(
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
-  #db.query(models.StudySession).filter(
-  #   models.StudySession.user_id == current_user.id,
-  #   models.StudySession.status == "planned",
-  #   models.StudySession.start_time >= datetime.now()
-  #).delete()
 
   sessions = db.query(models.StudySession).filter(
     models.StudySession.user_id == current_user.id,

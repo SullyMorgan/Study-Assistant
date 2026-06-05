@@ -63,27 +63,42 @@ function MainTabNavigator({ navigation }) {
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ tabBarLabel: t('dashboard') }}
+        options={{
+          tabBarLabel: t('dashboard'),
+          headerTitle: t('dashboard'),
+        }}
       />
       <Tab.Screen
         name="Classes"
         component={ClassesScreen}
-        options={{ tabBarLabel: t('classes') }}
+        options={{
+          tabBarLabel: t('classes'),
+          headerTitle: t('classes'),
+        }}
       />
       <Tab.Screen
         name="Planner"
         component={PlannerScreen}
-        options={{ tabBarLabel: t('planner') }}
+        options={{
+          tabBarLabel: t('planner'),
+          headerTitle: t('planner'),
+        }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarScreen}
-        options={{ tabBarLabel: t('calendar') }}
+        options={{
+          tabBarLabel: t('calendar'),
+          headerTitle: t('calendar'),
+        }}
       />
       <Tab.Screen
         name="Materials"
         component={MaterialsScreen}
-        options={{ tabBarLabel: t('materials') }}
+        options={{
+          tabBarLabel: t('materials'),
+          headerTitle: t('materials'),
+        }}
       />
     </Tab.Navigator>
   );
@@ -126,22 +141,28 @@ export default function AppNavigator() {
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ headerShown: false }}
+            options={{ title: t('login'), headerShown: false }}
           />
           <Stack.Screen
             name="Main"
             component={MainTabNavigator}
-            options={{ headerShown: false }}
+            options={{ title: t('dashboard'), headerShown: false }}
           />
           <Stack.Screen
             name="Register"
             component={RegisterScreen}
-            options={{ headerShown: false }}
+            options={{ title: t('register'), headerShown: false }}
           />
           <Stack.Screen
             name="Profile"
             component={ProfileScreen}
-            options={{ title: t('myProfile'), headerShown: true, headerTintColor: '#1e3a8a' }}
+            options={{
+              title: t('myProfile'),
+              headerShown: true,
+              headerTintColor: '#1e3a8a',
+              headerStyle: { backgroundColor: '#f5f7fb' },
+              headerTitleStyle: { fontWeight: 'bold' }
+            }}
           />
           <Stack.Screen
             name="StudySession"

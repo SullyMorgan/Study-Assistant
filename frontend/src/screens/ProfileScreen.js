@@ -22,6 +22,7 @@ export default function ProfileScreen({ navigation }) {
   const [userName, setUserName] = useState('');
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLangModalVisible, setIsLangModalVisible] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -47,17 +48,9 @@ export default function ProfileScreen({ navigation }) {
     loadUserData();
   }, []);
 
-  const toggleLanguage = () => {
-    let nextLanguage = 'en';
-
-    if (i18n.language === 'en') {
-      nextLanguage = 'hu';
-    } else if (i18n.language === 'hu') {
-      nextLanguage = 'ro';
-    } else {
-      nextLanguage = 'en';
-    }
-    i18n.changeLanguage(nextLanguage);
+  const selectLanguage = (langCode) => {
+    i18n.changeLanguage(langCode);
+    setIsLangModalVisible(false);
   };
 
   const handleLogout = async () => {
@@ -128,7 +121,7 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.menuText}>{t('changePassword')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={toggleLanguage}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => setIsLangModalVisible(true)}>
           <Ionicons name="globe-outline" size={20} color="#1e3a8a" />
           <Text style={styles.menuText}>
             {t('changeLanguage')} ({i18n.language.toUpperCase()})
@@ -224,6 +217,48 @@ export default function ProfileScreen({ navigation }) {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isLangModalVisible}
+        onRequestClose={() => setIsLangModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+              <TouchableOpacity onPress={() => setIsLangModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.langOption, i18n.language === 'en' && styles.activeLangOption]}
+              onPress={() => selectLanguage('en')}
+            >
+              <Text style={[styles.langText, i18n.language === 'en' && styles.activeLangText]}>English</Text>
+              {i18n.language === 'en' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.langOption, i18n.language === 'hu' && styles.activeLangOption]}
+              onPress={() => selectLanguage('hu')}
+            >
+              <Text style={[styles.langText, i18n.language === 'hu' && styles.activeLangText]}>Magyar</Text>
+              {i18n.language === 'hu' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.langOption, i18n.language === 'ro' && styles.activeLangOption]}
+              onPress={() => selectLanguage('ro')}
+            >
+              <Text style={[styles.langText, i18n.language === 'ro' && styles.activeLangText]}>Română</Text>
+              {i18n.language === 'ro' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -247,5 +282,31 @@ const styles = StyleSheet.create({
   passwordInput: { flex: 1, paddingHorizontal: 15, paddingVertical: 12, fontSize: 16, color: '#000' },
   eyeIcon: { paddingHorizontal: 15 },
   saveButton: { width: '100%', backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: '#f9fafb',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb'
+  },
+  activeLangOption: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe'
+  },
+  langText: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500'
+  },
+  activeLangText: {
+    color: '#2563eb',
+    fontWeight: 'bold'
+  }
 });

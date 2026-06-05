@@ -117,9 +117,16 @@ export default function DashboardScreen({ navigation }) {
   };
 
   const onDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setTaskDeadline(selectedDate);
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        setTaskDeadline(selectedDate);
+      }
+    }
+    else if (Platform.OS === 'ios') {
+      if (selectedDate) {
+        setTaskDeadline(selectedDate);
+      }
     }
   };
 

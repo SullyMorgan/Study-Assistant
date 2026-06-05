@@ -7,7 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Platform
+  Platform,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getStudyPlan, acceptStudyPlan } from '../api/planner';
@@ -26,13 +31,21 @@ export default function PlannerScreen() {
   const [sleepEnd, setSleepEnd] = useState(8);
   const [maxSessions, setMaxSessions] = useState(3);
 
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [tempSleepStart, setTempSleepStart] = useState('23');
+  const [tempSleepEnd, setTempSleepEnd] = useState('8');
+  const [tempMaxSessions, setTempMaxSessions] = useState('3');
+
   const handleGeneratePlan = async () => {
     setIsLoading(true);
     try {
-      const suggestedPlan = await getStudyPlan(sleepStart, sleepEnd, maxSessions);
+      const startParam = parseInt(tempSleepStart, 10) || 23;
+      const endParam = parseInt(tempSleepEnd, 10) || 8;
+      const sessionsParam = parseInt(tempMaxSessions, 10) || 3;
 
+      const suggestedPlan = await getStudyPlan(startParam, endParam, sessionsParam);
       // debug
-      console.log("Suggested Plan:", suggestedPlan);
+      // console.log("Suggested Plan:", suggestedPlan);
       setPlan(suggestedPlan || []);
       setHasGenerated(true);
     } catch (error) {
@@ -58,6 +71,34 @@ export default function PlannerScreen() {
     }
   };
 
+  const openSettings = () => {
+    setTempSleepStart(sleepStart.toString());
+    setTempSleepEnd(sleepEnd.toString());
+    setTempMaxSessions(maxSessions.toString());
+    setIsSettingsVisible(true);
+  };
+
+  const saveSettings = () => {
+    const start = parseInt(tempSleepStart);
+    const end = parseInt(tempSleepEnd);
+    const sessions = parseInt(tempMaxSessions);
+
+    if (isNaN(start) || start < 0 || start > 23 || isNaN(end) || end < 0 || end > 23) {
+      Alert.alert(t('errorTitle'), t('invalidSleepHours'));
+      return;
+    }
+    if (isNaN(sessions) || sessions < 1 || sessions > 8) {
+      Alert.alert(t('errorTitle'), t('invalidMaxSessions'));
+      return;
+    }
+
+    setSleepStart(start);
+    setSleepEnd(end);
+    setMaxSessions(sessions);
+    setIsSettingsVisible(false);
+    Keyboard.dismiss();
+  };
+  
   // date formatter aux func
   const formatDateTime = (isoString) => {
     const date = new Date(isoString);
@@ -68,28 +109,26 @@ export default function PlannerScreen() {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>{t('studyPlan')}</Text>
-        <Text style={styles.subtitle}>
-          {t('studyPlanSubtitle')}
-        </Text>
+        <Text style={styles.subtitle}>{t('studyPlanSubtitle')}</Text>
       </View>
 
-      {/* until there is no  generated plan */}
       {!hasGenerated && !isLoading && (
         <View style={styles.welcomeBox}>
           <View style={styles.iconCircle}>
-            <Ionicons name="sparkles" size={40} color="#8b5cf6" />
+            <Ionicons name="school" size={36} color="#8b5cf6" />
           </View>
           <Text style={styles.welcomeTitle}>{t('welcomeToStudyPlan')}</Text>
-          <Text style={styles.welcomeText}>
-            {t('clickToGeneratePlan')}
-          </Text>
 
-          <View style={styles.settingsPreview}>
-            <Text style={styles.settingsText}>{sleepStart}:00 - {sleepEnd}:00</Text>
-            <Text style={styles.settingsText}>{t('maxSessions')}: {maxSessions}</Text>
+          <View style={styles.settingsContainer}>
+            <View style={styles.settingsPreview}>
+              <Text style={styles.settingsText}>{sleepStart}:00 - {sleepEnd}:00</Text>
+              <Text style={styles.settingsText}>{t('maxSessions')}: {maxSessions}</Text>
+            </View>
+            <TouchableOpacity style={styles.editSettingsButton} onPress={openSettings}>
+              <Ionicons name="settings-outline" size={16} color="#8b5cf6" />
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
@@ -155,16 +194,75 @@ export default function PlannerScreen() {
                 ) : (
                   <>
                     <Ionicons name="checkmark" size={20} color="#fff" style={{ marginRight: 5 }} />
-                    <Text style={styles.acceptButtonText}>{t('accept')}</Text>
+                    <Text style={styles.acceptButtonText}>{t('acceptPlan')}</Text>
                   </>
                 )}
               </TouchableOpacity>
-            </View>
+            </View>  
           )}
         </View>
       )}
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isSettingsVisible}
+        onRequestClose={() => setIsSettingsVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={{ width: '100%' }}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('planSettings')}</Text>
+                  <TouchableOpacity onPress={() => setIsSettingsVisible(false)}>
+                    <Ionicons name="close" size={24} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.inputLabel}>{t('sleepStart')}</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="number-pad"
+                  maxLength={2}
+                  value={tempSleepStart}
+                  onChangeText={setTempSleepStart}
+                  placeholder="23"
+                />
+
+                <Text style={styles.inputLabel}>{t('sleepEnd')}</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="number-pad"
+                  maxLength={2}
+                  value={tempSleepEnd}
+                  onChangeText={setTempSleepEnd}
+                  placeholder="8"
+                />
+
+                <Text style={styles.inputLabel}>{t('maxSessions')}</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  value={tempMaxSessions}
+                  onChangeText={setTempMaxSessions}
+                  placeholder="3"
+                />
+
+                <TouchableOpacity style={styles.saveButton} onPress={saveSettings}>
+                  <Text style={styles.saveButtonText}>{t('saveSettings')}</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -177,10 +275,15 @@ const styles = StyleSheet.create({
   welcomeBox: { backgroundColor: '#fff', borderRadius: 16, padding: 25, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', marginTop: 30, elevation: 2 },
   iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f3e8ff', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   welcomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 },
-  welcomeText: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
-  settingsPreview: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', backgroundColor: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 20 },
-  settingsText: { fontSize: 12, color: '#4b5563', fontWeight: '500' },
-  generateButton: { backgroundColor: '#8b5cf6', flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 25, borderRadius: 12, alignItems: 'center', elevation: 3 },
+  welcomeText: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 20, marginBottom: 15 },
+  
+  settingsContainer: { width: '100%', alignItems: 'center', marginBottom: 20 },
+  settingsPreview: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', backgroundColor: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 8 },
+  settingsText: { fontSize: 13, color: '#4b5563', fontWeight: '600' },
+  editSettingsButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
+  editSettingsText: { fontSize: 13, color: '#8b5cf6', fontWeight: 'bold', marginLeft: 5 },
+
+  generateButton: { backgroundColor: '#8b5cf6', flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 25, borderRadius: 12, alignItems: 'center', elevation: 3, marginTop: 5 },
   generateButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
   // Loading state
@@ -210,5 +313,15 @@ const styles = StyleSheet.create({
   declineButton: { flex: 1, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   declineButtonText: { color: '#6b7280', fontSize: 16, fontWeight: '600' },
   acceptButton: { flex: 2, backgroundColor: '#10b981', flexDirection: 'row', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 2 },
-  acceptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  acceptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Modal styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
+  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 6, marginTop: 10 },
+  input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 10 },
+  saveButton: { backgroundColor: '#8b5cf6', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

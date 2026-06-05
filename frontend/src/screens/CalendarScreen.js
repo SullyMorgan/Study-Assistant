@@ -104,17 +104,27 @@ export default function CalendarScreen({ navigation }) {
     }
 
     try {
-      const startDateTimeISO = `${selectedDate}T${startTime}:00`;
-      const endDateTimeISO = `${selectedDate}T${endTime}:00`;
+      const weeksToLoop = isRecurring ? 4 : 1;
 
-      const payload = {
-        title: eventTitle,
-        start_time: startDateTimeISO,
-        end_time: endDateTimeISO,
-        is_recurring: isRecurring
-      };
+      let currentTargetDate = new Date(selectedDate);
 
-      await createSchedules(payload);
+      for (let i = 0; i < weeksToLoop; i++) {
+        const dateString = currentTargetDate.toISOString().split('T')[0];
+
+        const startDateTimeISO = `${dateString}T${startTime}:00`;
+        const endDateTimeISO = `${dateString}T${endTime}:00`;
+
+        const payload = {
+          title: eventTitle,
+          start_time: startDateTimeISO,
+          end_time: endDateTimeISO,
+          is_recurring: isRecurring
+        };
+
+        await createSchedules(payload);
+
+        currentTargetDate.setDate(currentTargetDate.getDate() + 7);
+      }
 
       Alert.alert(t('successTitle'), t('scheduleCreatedSuccess'));
       setModalVisible(false);

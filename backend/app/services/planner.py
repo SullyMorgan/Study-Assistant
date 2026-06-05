@@ -87,7 +87,7 @@ def can_study_task(task, study_date):
 
     earliest_study_date = task.deadline - timedelta(days=window_days)
 
-    return study_date >= earliest_study_date
+    return study_date >= earliest_study_date or study_date < task.deadline
 
 def get_best_task(task_pool, study_start):
     candidates = []
@@ -129,7 +129,7 @@ def generate_plan(
     max_sessions_per_day: int = 3,
     days_to_plan: int = 7
 ):
-    start_date = datetime.now()
+    start_date = datetime.now() + timedelta(hours=1)
     end_date = start_date + timedelta(days=days_to_plan)
 
     slots = get_free_slots(
@@ -157,6 +157,10 @@ def generate_plan(
 
     current_slot_idx = 0
 
+    buffer_after_wake = 1
+    effective_sleep_start = (sleep_start - 1) % 24
+    effective_sleep_end = (sleep_end + buffer_after_wake) % 24
+    
     while current_slot_idx < len(slots):
         slot = slots[current_slot_idx]
 
@@ -176,24 +180,40 @@ def generate_plan(
         )
 
         # handle sleep hours
-        if (study_end_estimate.hour >= sleep_start or study_start.hour < sleep_end):
-            if study_start.hour >= sleep_start:
-                next_morning = (
-                    study_start.replace(
-                        hour=sleep_end,
-                        minute=0,
-                        second=0,
-                        microsecond=0
-                    ) + timedelta(days=1)
-                )
-            else:
+        is_sleeping = False
+        if sleep_start > sleep_end:
+            if study_end_estimate.hour >= effective_sleep_start or study_start.hour < effective_sleep_end:
+                is_sleeping = True
+
+        else:
+            if effective_sleep_start <= study_start.hour < effective_sleep_end:
+                is_sleeping = True
+
+        if is_sleeping:
+            if study_start.hour >= effective_sleep_start and effective_sleep_start > effective_sleep_end:
+                next_morning = (study_start.replace(
+                    hour=effective_sleep_end,
+                    minute=0,
+                    second=0,
+                    microsecond=0
+                ) + timedelta(days=1))
+            elif study_start.hour < effective_sleep_end:
                 next_morning = study_start.replace(
-                    hour=sleep_end,
+                    hour=effective_sleep_end,
                     minute=0,
                     second=0,
                     microsecond=0
                 )
-
+            else:
+                next_morning = study_start.replace(
+                    hour=effective_sleep_end,
+                    minute=0,
+                    second=0,
+                    microsecond=0
+                )
+                if study_start.hour >= effective_sleep_end:
+                    next_morning += timedelta(days=1)
+            
             skipped = (next_morning - study_start).total_seconds() / 60
 
             slot["start"] = next_morning
@@ -207,7 +227,7 @@ def generate_plan(
         # daily limit
         if daily_session_counts[day_key] >= max_sessions_per_day:
             next_morning = (study_start.replace(
-                hour=sleep_end,
+                hour=effective_sleep_end,
                 minute=0,
                 second=0,
                 microsecond=0
@@ -231,7 +251,11 @@ def generate_plan(
         current_task = get_best_task(task_pool, study_start)
 
         if not current_task:
-            current_slot_idx += 1
+            slot["start"] = study_start + timedelta(hours=1)
+            slot["duration_minutes"] -= 60
+
+            if slot["duration_minutes"] < SESSION_DURATION:
+                current_slot_idx += 1
             continue
 
         task_model = current_task["model"]
@@ -257,7 +281,6 @@ def generate_plan(
         daily_session_counts[day_key] += 1
 
         slot["start"] = (study_end + timedelta(minutes=BREAK_DURATION))
-
         slot["duration_minutes"] -= (SESSION_DURATION + BREAK_DURATION)
 
     return recommendations

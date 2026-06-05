@@ -69,6 +69,20 @@ export default function MaterialsScreen() {
     loadMaterials();
   };
 
+  const loadSummary = async (materialId) => {
+    if (aiSummary) return;
+    setIsAiLoading(true);
+    try {
+      const summaryData = await getMaterialSummary(materialId);
+      setAiSummary(summaryData.summary || t('noSummary'));
+    } catch (error) {
+      console.error('Failed to fetch material summary', error);
+      Alert.alert(t('errorTitle'), error.message || t('summaryFailed'));
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -148,7 +162,8 @@ export default function MaterialsScreen() {
     setAiQuiz([]);
     setSelectedAnswers({});
     setQuizSubmitted(false);
-    setActiveTab('summary');
+
+    setActiveTab('menu');
     setIsDetailsModalVisible(true);
     setIsAiLoading(true);
 
@@ -165,15 +180,16 @@ export default function MaterialsScreen() {
 
   const handleTabChange = async (tab) => {
     setActiveTab(tab);
-    if (tab === 'quiz' && (!aiQuiz || aiQuiz.length === 0) && selectedMaterial) {
+    if (!selectedMaterial) return;
+
+    if (tab === 'summary') {
+      await loadSummary(selectedMaterial.id);
+    } else if (tab === 'quiz' && (!aiQuiz || aiQuiz.length === 0)) {
       setIsAiLoading(true);
       try {
         const quizData = await getMaterialQuiz(selectedMaterial.id);
-        
-        console.log("Received quiz data:", JSON.stringify(quizData));
-
-        const questionsArray = quizData.quiz;
-        setAiQuiz(questionsArray);
+        console.log('Received quiz data:', quizData);
+        setAiQuiz(quizData.quiz || []);
         setSelectedAnswers({});
         setQuizSubmitted(false);
       } catch (error) {
@@ -301,34 +317,73 @@ export default function MaterialsScreen() {
       <Modal visible={isDetailsModalVisible} animationType="slide" transparent={false}>
         <View style={styles.detailsContainer}>
           <View style={styles.detailsHeader}>
-            <TouchableOpacity onPress={() => setIsDetailsModalVisible(false)} style={styles.closeDetailsBtn}>
-              <Ionicons name="arrow-back" size={24} color="#1f2937" />
-              <Text style={styles.detailsHeaderTitle} numberOfLines={1}>{selectedMaterial?.title}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (activeTab === 'menu') {
+                  setIsDetailsModalVisible(false);
+                } else {
+                  setActiveTab('menu');
+                }
+              }}
+              style={styles.closeDetailsBtn}
+            >
+              <Ionicons name={activeTab === 'menu' ? "close" : "arrow-back"} size={24} color="#1f2937" />
+              <Text style={styles.detailsHeaderTitle} numberOfLines={1}>
+                {activeTab === 'menu' ? selectedMaterial?.title : (activeTab === 'summary' ? t('summary') : t('quiz'))}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tabBar}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-              onPress={() => handleTabChange('summary')}
-            >
-              <Ionicons name="list-circle-outline" size={20} color={activeTab === 'summary' ? '#1e3a8a' : '#6b7280'} />
-              <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>{t('summary')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'quiz' && styles.activeTab]}
-              onPress={() => handleTabChange('quiz')}
-            >
-              <Ionicons name="help-circle-outline" size={20} color={activeTab === 'quiz' ? '#1e3a8a' : '#6b7280'} />
-              <Text style={[styles.tabText, activeTab === 'quiz' && styles.activeTabText]}>{t('quiz')}</Text>
-            </TouchableOpacity>
-          </View>
+          {activeTab !== 'menu' && (
+            <View style={styles.tabBar}>
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+                onPress={() => handleTabChange('summary')}
+              >
+                <Ionicons name="list-circle-outline" size={20} color={activeTab === 'summary' ? '#1e3a8a' : '#6b7280'} />
+                <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>{t('summary')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'quiz' && styles.activeTab]}
+                onPress={() => handleTabChange('quiz')}
+              >
+                <Ionicons name="help-circle-outline" size={20} color={activeTab === 'quiz' ? '#1e3a8a' : '#6b7280'} />
+                <Text style={[styles.tabText, activeTab === 'quiz' && styles.activeTabText]}>{t('quiz')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <ScrollView style={styles.detailsBody} showsVerticalScrollIndicator={false}>
             {isAiLoading ? (
               <View style={styles.aiLoadingBox}>
                 <ActivityIndicator size="large" color="#1e3a8a" />
                 <Text style={styles.aiLoadingText}>{t('aiProcessing')}</Text>
+              </View>
+            ) : activeTab === 'menu' ? (
+              <View style={styles.menuDashboard}>
+                <Text style={styles.menuDashboardTitle}>{t('whatWouldYouLikeToDo')}</Text>
+
+                <TouchableOpacity style={styles.menuLaunchBtn} onPress={() => handleTabChange('summary')}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#eff6ff' }]}>
+                    <Ionicons name="list-circle" size={32} color="#1e3a8a" />
+                  </View>
+                  <View style={styles.menuBtnTextBox}>
+                    <Text style={styles.menuBtnTitle}>{t('summary')}</Text>
+                    <Text style={styles.menuBtnDesc}>{t('summaryDesc')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuLaunchBtn} onPress={() => handleTabChange('quiz')}>
+                  <View style={[styles.menuIconBox, { backgroundColor: '#f0fdf4' }]}>
+                    <Ionicons name="help-circle" size={32} color="#10b981" />
+                  </View>
+                  <View style={styles.menuBtnTextBox}>
+                    <Text style={styles.menuBtnTitle}>{t('quiz')}</Text>
+                    <Text style={styles.menuBtnDesc}>{t('quizDesc')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </TouchableOpacity>
               </View>
             ) : activeTab === 'summary' ? (
               <View style={styles.summaryBox}>
@@ -337,31 +392,26 @@ export default function MaterialsScreen() {
               </View>
             ) : (
               <View style={styles.quizBox}>
-                <Text style={styles.summaryHeadline}>{t('testYourself')}</Text>
-                
-                {/* SCORE BANNER */}
+                <Text style={styles.summaryHeadline}>{t('testYourKnowledge')}</Text>
+
                 {quizSubmitted && (
                   <View style={styles.scoreBanner}>
                     <Ionicons name="trophy" size={24} color="#f59e0b" />
-                    <Text style={styles.scoreText}>
-                      Eredmény: {calculateScore()} / {aiQuiz.length} ({Math.round((calculateScore() / aiQuiz.length) * 100)}%)
-                    </Text>
+                    <Text style={styles.scoreText}>{t('yourScore')}: {calculateScore()} / {aiQuiz.length} ({Math.round((calculateScore() / aiQuiz.length) * 100)}%)</Text>
                   </View>
                 )}
 
                 {aiQuiz && aiQuiz.length > 0 ? (
                   aiQuiz.map((q, index) => {
                     const questionText = q.question_text || q.text;
-                    const isAnswered = selectedAnswers[index] !== undefined;
-
                     return (
                       <View key={index} style={styles.quizCard}>
                         <Text style={styles.quizQuestion}>{index + 1}. {questionText}</Text>
-                        
+
                         {(q.options || []).map((opt, oIdx) => {
                           const isSelected = selectedAnswers[index] === oIdx;
                           const isCorrect = q.correct_option_index === oIdx;
-                          
+
                           let optionStyle = styles.quizOptionBox;
                           let optionTextStyle = styles.quizOptionText;
 
@@ -394,10 +444,9 @@ export default function MaterialsScreen() {
                           );
                         })}
 
-                        {/* EXPLANATION TO SHOW AFTER SUBMIT */}
                         {quizSubmitted && q.explanation && (
                           <View style={styles.explanationBox}>
-                            <Text style={styles.explanationTitle}>Magyarázat:</Text>
+                            <Text style={styles.explanationTitle}>{t('answerExplanation')}</Text>
                             <Text style={styles.explanationText}>{q.explanation}</Text>
                           </View>
                         )}
@@ -408,13 +457,11 @@ export default function MaterialsScreen() {
                   <Text style={styles.emptyText}>{t('noQuiz')}</Text>
                 )}
 
-                {/* BOTTOM QUIZ CONTROLS */}
                 {aiQuiz && aiQuiz.length > 0 && (
                   !quizSubmitted ? (
                     <TouchableOpacity
                       style={[styles.submitQuizBtn, Object.keys(selectedAnswers).length < aiQuiz.length && styles.disabledBtn]}
                       onPress={() => setQuizSubmitted(true)}
-                      disabled={Object.keys(selectedAnswers).length < aiQuiz.length}
                     >
                       <Text style={styles.submitQuizBtnText}>{t('submitQuiz')}</Text>
                     </TouchableOpacity>
@@ -514,5 +561,27 @@ const styles = StyleSheet.create({
   submitQuizBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
   restartQuizBtn: { flexDirection: 'row', backgroundColor: '#fff', paddingVertical: 14, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 10, borderWidth: 1, borderColor: '#1e3a8a' },
-  restartQuizBtnText: { color: '#1e3a8a', fontSize: 16, fontWeight: 'bold' }
+  restartQuizBtnText: { color: '#1e3a8a', fontSize: 16, fontWeight: 'bold' },
+
+  menuDashboard: { marginTop: 10, paddingBottom: 30 },
+  menuDashboardTitle: { fontSize: 16, fontWeight: '600', color: '#4b5563', marginBottom: 20, textAlign: 'center' },
+  menuLaunchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  menuIconBox: { padding: 10, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  menuBtnTextBox: { flex: 1, marginLeft: 15, paddingRight: 10 },
+  menuBtnTitle: { fontSize: 18, fontWeight: 'bold', color: '#1f2937' },
+  menuBtnDesc: { fontSize: 13, color: '#6b7280', marginTop: 4, lineHeight: 18 }
 });
