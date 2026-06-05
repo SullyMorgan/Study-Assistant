@@ -20,6 +20,7 @@ import { logout } from '../api/auth';
 import { useTranslation } from 'react-i18next';
 import { fetchTasks, toggleTask, fetchClasses, createTask } from '../api/tasks';
 import { Ionicons } from '@expo/vector-icons';
+import { registerForPushNotifications } from './ProfileScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function DashboardScreen({ navigation }) {
@@ -64,6 +65,8 @@ export default function DashboardScreen({ navigation }) {
   };
 
   useEffect(() => {
+    // notification test
+    registerForPushNotifications();
     loadDashboardData();
   }, []);
 

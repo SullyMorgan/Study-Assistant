@@ -15,6 +15,70 @@ import { logout, changePassword } from '../api/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+import axios from 'axios';
+
+// NOTIFICATIONS SETUP
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+export const registerForPushNotifications = async () => {
+  if (!Device.isDevice) {
+    console.log('Must use physical device for Push Notifications');
+    return;
+  }
+
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('User denied push notification permissions');
+      return;
+    }
+
+    const projectId = 
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+
+    if (!projectId) {
+      console.log('Expo project ID is not set. Push notifications may not work correctly.');
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: projectId,
+    });
+
+    const expoToken = tokenData.data;
+    console.log('Expo Push Token:', expoToken);
+
+    const userToken = await AsyncStorage.getItem('userToken');
+    await axios.post('http://192.168.1.168:8000/sessions/register-push', {
+      token: expoToken
+    }, {
+      headers: {
+        'Authorization': `Bearer ${userToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('Expo token registered with backend');
+  } catch (error) {
+    console.error('Error registering for push notifications:', error);
+  }
+};
 
 export default function ProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
