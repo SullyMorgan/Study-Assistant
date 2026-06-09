@@ -12,9 +12,10 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
-import { fetchUserClasses, createClass } from '../api/classes';
+import { fetchUserClasses, createClass, deleteClass } from '../api/classes';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -75,6 +76,29 @@ export default function ClassesScreen({ navigation }) {
     }
   };
 
+  const handleDeleteClass = async (id) => {
+    Alert.alert(
+      t('deleteClassTitle'),
+      t('deleteClassMsg'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteClass(id);
+              setClasses(prev => prev.filter(c => c.id !== id));
+            } catch (error) {
+              console.error(error);
+              Alert.alert(t('errorTitle'), t('deleteClassFailed'));
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getDifficultyDetails = (diffStr) => {
     const diff = parseInt(diffStr) || 5;
     if (diff <= 3) return '#10b981';
@@ -85,13 +109,13 @@ export default function ClassesScreen({ navigation }) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1e3a8a" />
+        <ActivityIndicator size="large" color="#62119f" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f7fb' }}>
+    <View style={{ flex: 1, backgroundColor: '#d1e9ef' }}>
       <ScrollView
         style={styles.container}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
@@ -103,7 +127,7 @@ export default function ClassesScreen({ navigation }) {
 
         {classes.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="book-outline" size={50} color="#9ca3af" />
+            <Ionicons name="book-outline" size={50} color="#a8a29e" />
             <Text style={styles.emptyText}>{t('noClasses')}</Text>
           </View>
         ) : (
@@ -113,18 +137,21 @@ export default function ClassesScreen({ navigation }) {
               <View key={item.id} style={styles.classCard}>
                 <View style={styles.classInfo}>
                   <View style={styles.iconContainer}>
-                    <Ionicons name="journal-outline" size={24} color="#1e3a8a" />
+                    <Ionicons name="journal-outline" size={24} color="#62119f" />
                   </View>
                   <View style={styles.textContainer}>
                     <Text style={styles.className}>{item.name}</Text>
+                    <View style={[styles.badge, { backgroundColor: cardColor + '15', alignSelf: 'flex-start', marginTop: 4 }]}>
+                      <Text style={[styles.badgeText, { color: cardColor }]}>
+                        {t('difficulty')}: {item.difficulty}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
-                <View style={[styles.badge, { backgroundColor: cardColor + '15' }]}>
-                  <Text style={[styles.badgeText, { color: cardColor }]}>
-                    {t('difficulty')}: {item.difficulty}
-                  </Text>
-                </View>
+                <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteClass(item.id)}>
+                  <Ionicons name="trash-outline" size={22} color="#ef4444" />
+                </TouchableOpacity>
               </View>
             );
           })
@@ -152,7 +179,7 @@ export default function ClassesScreen({ navigation }) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{t('addNewClass')}</Text>
                   <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
+                    <Ionicons name="close" size={24} color="#78716c" />
                   </TouchableOpacity>
                 </View>
 
@@ -160,7 +187,7 @@ export default function ClassesScreen({ navigation }) {
                 <TextInput
                   style={styles.input}
                   placeholder={t('classNamePlace')}
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#a8a29e"
                   value={className}
                   onChangeText={setClassName}
                 />
@@ -211,36 +238,36 @@ export default function ClassesScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 20 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
-  screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a', marginTop: 30 },
-  subTitle: { fontSize: 14, color: '#6b7280', marginTop: 5, marginBottom: 25, lineHeight: 20 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
+  screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#62119f', marginTop: 30 },
+  subTitle: { fontSize: 14, color: '#78716c', marginTop: 5, marginBottom: 25, lineHeight: 20 },
   
-  classCard: { backgroundColor: '#fff', borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb' },
+  classCard: { backgroundColor: '#fffdfa', borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: '#62119f' },
   classInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  iconContainer: { backgroundColor: '#eff6ff', width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  iconContainer: { backgroundColor: '#fff7ed', width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   textContainer: { marginLeft: 14, flex: 1 },
-  className: { fontSize: 16, fontWeight: 'bold', color: '#1f2937' },
-  classId: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  className: { fontSize: 16, fontWeight: 'bold', color: '#44403c' },
   
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   badgeText: { fontSize: 13, fontWeight: 'bold' },
   
   emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 60 },
-  emptyText: { color: '#6b7280', marginTop: 10, fontSize: 15, fontStyle: 'italic' },
+  emptyText: { color: '#78716c', marginTop: 10, fontSize: 15, fontStyle: 'italic' },
   
-  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#1e3a8a', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#aa5ed3', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(68,64,60,0.4)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fffdfa', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
-  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 8 },
-  input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 15 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#62119f' },
+  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#57534e', marginBottom: 8 },
+  input: { backgroundColor: '#f5f5f4', padding: 12, borderRadius: 8, fontSize: 16, color: '#44403c', marginBottom: 15 },
   
   numberSelectorContainer: { flexDirection: 'row', marginBottom: 25, paddingVertical: 5 },
-  numberButton: { width: 40, height: 40, backgroundColor: '#f3f4f6', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 8, borderWidth: 1, borderColor: '#e5e7eb' },
-  numberButtonText: { fontSize: 15, fontWeight: 'bold', color: '#4b5563' },
+  numberButton: { width: 40, height: 40, backgroundColor: '#f5f5f4', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 8, borderWidth: 1, borderColor: '#e7e5e4' },
+  numberButtonText: { fontSize: 15, fontWeight: 'bold', color: '#57534e' },
   
-  saveButton: { backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+  deleteBtn: { padding: 8, justifyContent: 'center', alignItems: 'center' },
+  saveButton: { backgroundColor: '#aa5ed3', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

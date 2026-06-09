@@ -76,7 +76,11 @@ const resources = {
       "addNewClass": "Új tantárgy hozzáadása",
       "className": "Tantárgy neve",
       "classNamePlace": "Írd be a tantárgy nevét",
-      "difficulty": "Nehézség (1-10)",
+      "difficulty": "Nehézség",
+      "delete": "Törlés",
+      "deleteClassFailed": "Nem sikerült törölni a tantárgyat. Kérlek próbáld újra.",
+      "deleteClassTitle": "Tantárgy törlése",
+      "deleteClassMsg": "Biztosan törölni szeretnéd ezt a tantárgyat?",
 
       // calendar screen
       "endTimeError": "A befejezés időpontjának a kezdés után kell lennie",
@@ -99,9 +103,9 @@ const resources = {
       "endTime": "Befejezés időpontja",
       "programTitlePlace": "Esemény címe (pl. Edzés, Matek előadás)",
 
-
+      "successTitle": "Tananyag sikeresen feltöltve",
       "myMaterials": "Tananyagaim",
-      "materialsSubtitle": "Itt találod az összes tananyagodat.",
+      "materialsSubtitle": "Itt találod az összes tananyagodat. Kattints egy tananyagra, hogy megnézd az összefoglalóját vagy generálj egy kvízt.",
       "noMaterials": "Még nem adtál hozzá egy tananyagot sem. Kattints a '+' gombra a kezdéshez!",
       "uploadMaterial": "Tananyag feltöltése",
       "materialTitle": "Tananyag címe",
@@ -127,6 +131,7 @@ const resources = {
       "summaryFailed": "Nem sikerült generálni az összefoglalót. Kérlek próbáld újra.",
       "quizFailed": "Nem sikerült generálni a kvízt. Kérlek próbáld újra.",
       "answerExplanation": "Magyarázat",
+      "pdfDoc": "PDF dokumentum",
 
       // planner screen
       "studyPlan": "Tanulási terv készítése",
@@ -143,6 +148,10 @@ const resources = {
       "planAcceptedMessage": "Tanulási terv elfogadva! A naptárad frissült az új tanulási blokkokkal. Sok sikert a tanuláshoz!",
       "failedToGeneratePlan": "Sajnáljuk! Valami hiba történt a terv generálása közben. Kérlek próbáld újra.",
       "planAccepted": "Terv elfogadva",
+      "editSettings": "Beállítások",
+      "sleepStart": "Mikor szoktál általában lefeküdni?",
+      "sleepEnd": "Mikor szoktál általában felkelni?",
+      "planSettings": "Terv beállítások",
 
       // session screen
       "endSessionTitle": "Tanulás befejezése",
@@ -171,7 +180,7 @@ const resources = {
       "noAccount": "Don't have an account? Register here.",
       "alreadyAccount": "Already have an account? Log in",
       "save": "Save",
-      
+
       "namePlace": "Name",
       "emailPlace": "Email",
       "passwordPlace": "Password",
@@ -236,7 +245,11 @@ const resources = {
       "addNewClass": "Add New Course",
       "className": "Course Name",
       "classNamePlace": "Enter course name",
-      "difficulty": "Difficulty (1-10)",
+      "difficulty": "Difficulty",
+      "delete": "Delete",
+      "deleteClassFailed": "Failed to delete course. Please try again.",
+      "deleteClassTitle": "Delete Course",
+      "deleteClassMsg": "Are you sure you want to delete this course?",
 
       // calendar screen
       "endTimeError": "End time must be after start time",
@@ -261,7 +274,7 @@ const resources = {
 
       // materials screen
       "myMaterials": "My Materials",
-      "materialsSubtitle": "Here are all your materials.",
+      "materialsSubtitle": "Here are all your materials. Click on a material to view its summary or generate a quiz.",
       "noMaterials": "You haven't added any materials yet. Click '+' to get started!",
       "uploadMaterial": "Upload Material",
       "materialTitle": "Material Title",
@@ -286,6 +299,8 @@ const resources = {
       "summaryFailed": "Failed to generate summary. Please try again.",
       "quizFailed": "Failed to generate quiz. Please try again.",
       "answerExplanation": "Explanation",
+      "uploadSuccess": "Material uploaded and processed successfully!",
+      "pdfDoc": "PDF Document",
 
       // planner screen
       "studyPlan": "Plan your study sessions",
@@ -302,6 +317,10 @@ const resources = {
       "planAcceptedMessage": "Study plan accepted! Your calendar has been updated with your new study sessions. Good luck with your studies!",
       "failedToGeneratePlan": "Sorry! Something went wrong while generating the plan. Please try again.",
       "planAccepted": "Plan Accepted",
+      "sleepStart": "When do you usually go to sleep?",
+      "sleepEnd": "When do you usually wake up?",
+      "planSettings": "Plan Settings",
+      "editSettings": "Settings",
 
       // session screen
       "endSessionTitle": "End Session",
@@ -394,7 +413,11 @@ const resources = {
       "addNewClass": "Adaugă curs nou",
       "className": "Numele cursului",
       "classNamePlace": "Introduceți numele cursului",
-      "difficulty": "Dificultate (1-10)",
+      "difficulty": "Dificultate",
+      "deleteClassFailed": "Nu s-a putut șterge cursul. Vă rugăm să încercați din nou.",
+      "delete": "Șterge",
+      "deleteClassTitle": "Șterge curs",
+      "deleteClassMsg": "Sigur dorești să ștergi acest curs?",
 
       "endTimeError": "Ora de sfârșit trebuie să fie după ora de început",
       "whichDay": "În ce zi?",
@@ -418,7 +441,7 @@ const resources = {
       "programTitlePlace": "Titlul evenimentului (ex. Sală de sport, Lecție de mate)",
 
       "myMaterials": "Materialele mele",
-      "materialsSubtitle": "Aici sunt toate materialele tale.",
+      "materialsSubtitle": "Aici sunt toate materialele tale. Apasă pe un material pentru a-i vedea rezumatul sau pentru a genera un chestionar.",
       "noMaterials": "Nu ai adăugat încă niciun material. Apasă '+' pentru a începe!",
       "uploadMaterial": "Încarcă material",
       "materialTitle": "Titlu material",
@@ -445,7 +468,9 @@ const resources = {
       "quizFailed": "Nu s-a putut genera chestionarul. Vă rugăm să încercați din nou.",
       "filePickFailed": "Nu s-a putut selecta fișierul. Vă rugăm să încercați din nou.",
       "answerExplanation": "Explicație",
-      
+      "uploadSuccess": "Material încărcat și procesat cu succes!",
+      "pdfDoc": "Document PDF",
+
       // planner screen
       "studyPlan": "Planifică-ți sesiunile de studiu",
       "studyPlanSubtitle": "Generează un plan de studiu personalizat bazat pe programul și preferințele tale.",
@@ -461,6 +486,10 @@ const resources = {
       "planAcceptedMessage": "Plan de studiu acceptat! Calendarul tău a fost actualizat cu noile sesiuni de studiu. Spor la învățat!",
       "failedToGeneratePlan": "Ne pare rău! Ceva a mers prost în timp ce generai planul. Vă rugăm să încercați din nou.",
       "planAccepted": "Plan acceptat",
+      "sleepStart": "Când te culci de obicei?",
+      "sleepEnd": "Când te trezești de obicei?",
+      "planSettings": "Setări plan",
+      "editSettings": "Setări",
 
       // session screen
       "endSessionTitle": "Încheie sesiunea",

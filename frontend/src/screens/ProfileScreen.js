@@ -9,7 +9,9 @@ import {
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard
 } from 'react-native';
 import { logout, changePassword } from '../api/auth';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +22,6 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import axios from 'axios';
 
-// NOTIFICATIONS SETUP
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -119,8 +120,8 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = async () => {
     Alert.alert(
-      t('logoutConfirmTitle'), // title
-      t('logoutConfirmMsg'), // message
+      t('logoutConfirmTitle'), 
+      t('logoutConfirmMsg'), 
       [
         {
           text: t('cancel'),
@@ -157,13 +158,13 @@ export default function ProfileScreen({ navigation }) {
     setIsLoading(true);
     try {
       await changePassword(currentPassword, newPassword);
-
       Alert.alert(t('successTitle'), t('passChangedSuccess'));
 
       setCurrentPassword('');
-      setNewPassword('');
+      自由NewPassword = setNewPassword('');
       setConfirmNewPassword('');
       setIsModalVisible(false);
+      Keyboard.dismiss();
     } catch (error) {
       console.error(error);
       Alert.alert(t('errorTitle'), error.detail || t('underDevelopment'));
@@ -204,82 +205,80 @@ export default function ProfileScreen({ navigation }) {
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ width: '100%' }}
-          >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.fullWidth}
+            >
               <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('changePassword')}</Text>
-                <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('changePassword')}</Text>
+                  <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+                    <Ionicons name="close" size={24} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* current password */}
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('currentPasswordPlace')}
-                  placeholderTextColor="#888"
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry={!isCurrentVisible}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsCurrentVisible(!isCurrentVisible)}>
-                  <Ionicons name={isCurrentVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder={t('currentPasswordPlace')}
+                    placeholderTextColor="#888"
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    secureTextEntry={!isCurrentVisible}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsCurrentVisible(!isCurrentVisible)}>
+                    <Ionicons name={isCurrentVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* new password */}
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('newPasswordPlace')}
-                  placeholderTextColor="#888"
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!isNewVisible}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsNewVisible(!isNewVisible)}>
-                  <Ionicons name={isNewVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder={t('newPasswordPlace')}
+                    placeholderTextColor="#888"
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry={!isNewVisible}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsNewVisible(!isNewVisible)}>
+                    <Ionicons name={isNewVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* confirm new password */}
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('confirmNewPasswordPlace')}
-                  placeholderTextColor="#888"
-                  value={confirmNewPassword}
-                  onChangeText={setConfirmNewPassword}
-                  secureTextEntry={!isConfirmVisible}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsConfirmVisible(!isConfirmVisible)}>
-                  <Ionicons name={isConfirmVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder={t('confirmNewPasswordPlace')}
+                    placeholderTextColor="#888"
+                    value={confirmNewPassword}
+                    onChangeText={setConfirmNewPassword}
+                    secureTextEntry={!isConfirmVisible}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setIsConfirmVisible(!isConfirmVisible)}>
+                    <Ionicons name={isConfirmVisible ? 'eye-off' : 'eye'} size={20} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* save button */}
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handlePasswordChange}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>{t('save')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>  
-          </KeyboardAvoidingView>
-        </View>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handlePasswordChange}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>{t('save')}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>  
+            </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       <Modal
@@ -288,49 +287,53 @@ export default function ProfileScreen({ navigation }) {
         visible={isLangModalVisible}
         onRequestClose={() => setIsLangModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-              <TouchableOpacity onPress={() => setIsLangModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
+        <TouchableWithoutFeedback onPress={() => setIsLangModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+                <TouchableOpacity onPress={() => setIsLangModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.langOption, i18n.language === 'en' && styles.activeLangOption]}
+                onPress={() => selectLanguage('en')}
+              >
+                <Text style={[styles.langText, i18n.language === 'en' && styles.activeLangText]}>English</Text>
+                {i18n.language === 'en' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.langOption, i18n.language === 'hu' && styles.activeLangOption]}
+                onPress={() => selectLanguage('hu')}
+              >
+                <Text style={[styles.langText, i18n.language === 'hu' && styles.activeLangText]}>Magyar</Text>
+                {i18n.language === 'hu' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.langOption, i18n.language === 'ro' && styles.activeLangOption]}
+                onPress={() => selectLanguage('ro')}
+              >
+                <Text style={[styles.langText, i18n.language === 'ro' && styles.activeLangText]}>Română</Text>
+                {i18n.language === 'ro' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[styles.langOption, i18n.language === 'en' && styles.activeLangOption]}
-              onPress={() => selectLanguage('en')}
-            >
-              <Text style={[styles.langText, i18n.language === 'en' && styles.activeLangText]}>English</Text>
-              {i18n.language === 'en' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.langOption, i18n.language === 'hu' && styles.activeLangOption]}
-              onPress={() => selectLanguage('hu')}
-            >
-              <Text style={[styles.langText, i18n.language === 'hu' && styles.activeLangText]}>Magyar</Text>
-              {i18n.language === 'hu' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.langOption, i18n.language === 'ro' && styles.activeLangOption]}
-              onPress={() => selectLanguage('ro')}
-            >
-              <Text style={[styles.langText, i18n.language === 'ro' && styles.activeLangText]}>Română</Text>
-              {i18n.language === 'ro' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
-            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f7fb', padding: 20 },
+  container: { flex: 1, backgroundColor: '#fffdfa', padding: 20 },
   profileHeader: { alignItems: 'center', marginTop: 20, marginBottom: 40 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#1e3a8a', marginTop: 10 },
+  fullWidth: { width: '100%' },
+  
   menuContainer: { backgroundColor: '#fff', borderRadius: 12, padding: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
   menuText: { fontSize: 16, marginLeft: 15, color: '#374151', fontWeight: '500' },

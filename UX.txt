@@ -1,4 +1,0 @@
-- credential change
-- i18n
-- password visible
-- potentially: being able to add friends and follow each other

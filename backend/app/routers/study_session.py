@@ -49,8 +49,8 @@ def schedule_push_background(expo_token: str, start_time: datetime, task_title: 
 
     send_expo_push_notification(
         expo_token=expo_token,
-        title="📖 Mindjárt kezdődik a tanulás!",
-        body=f"10 perc múlva kezdődik a(z) '{task_title}' alkalmad. Készülj fel!"
+        title="Get ready for your study session!",
+        body=f"10 minutes from now, your '{task_title}' session will start. Get ready!"
     )
 
 @router.post("/", response_model=schemas.StudySessionOut, status_code=status.HTTP_201_CREATED)
@@ -86,6 +86,33 @@ def create_study_session(
         )
 
     return new_session
+
+@router.post("/{session_id}/complete", status_code=status.HTTP_200_OK)
+def complete_study_session(
+    session_id: int,
+    actual_duration_minutes: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    session = db.query(models.StudySession).filter(
+        models.StudySession.id == session_id,
+        models.StudySession.user_id == current_user.id
+    ).first()
+
+    if not session:
+        raise HTTPException(
+            status_code=404,
+            detail="Study session not found."
+        )
+    
+    session.status = "completed"
+    if actual_duration_minutes is not None:
+        session.actual_duration = actual_duration_minutes
+    else:
+        session.actual_duration = session.duration
+
+    db.commit()
+    return {"message": "Study session marked as completed."}
 
 @router.post("/register-push", status_code=status.HTTP_200_OK)
 def register_push(

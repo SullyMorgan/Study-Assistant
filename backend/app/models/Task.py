@@ -14,7 +14,7 @@ class Task(Base):
 
   id = Column(Integer, primary_key=True)
   user_id = Column(Integer, ForeignKey("users.id"))
-  class_id = Column(Integer, ForeignKey("classes.id"))
+  class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"))
 
   title = Column(String, nullable=False)
   deadline = Column(DateTime, nullable=False)

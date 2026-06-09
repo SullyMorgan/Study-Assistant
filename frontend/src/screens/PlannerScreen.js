@@ -26,7 +26,7 @@ export default function PlannerScreen() {
   const [plan, setPlan] = useState([]);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // default settings
+  // Alapértelmezett beállítások állapota
   const [sleepStart, setSleepStart] = useState(23);
   const [sleepEnd, setSleepEnd] = useState(8);
   const [maxSessions, setMaxSessions] = useState(3);
@@ -42,10 +42,8 @@ export default function PlannerScreen() {
       const startParam = parseInt(tempSleepStart, 10) || 23;
       const endParam = parseInt(tempSleepEnd, 10) || 8;
       const sessionsParam = parseInt(tempMaxSessions, 10) || 3;
-
+      
       const suggestedPlan = await getStudyPlan(startParam, endParam, sessionsParam);
-      // debug
-      // console.log("Suggested Plan:", suggestedPlan);
       setPlan(suggestedPlan || []);
       setHasGenerated(true);
     } catch (error) {
@@ -79,9 +77,9 @@ export default function PlannerScreen() {
   };
 
   const saveSettings = () => {
-    const start = parseInt(tempSleepStart);
-    const end = parseInt(tempSleepEnd);
-    const sessions = parseInt(tempMaxSessions);
+    const start = parseInt(tempSleepStart, 10);
+    const end = parseInt(tempSleepEnd, 10);
+    const sessions = parseInt(tempMaxSessions, 10);
 
     if (isNaN(start) || start < 0 || start > 23 || isNaN(end) || end < 0 || end > 23) {
       Alert.alert(t('errorTitle'), t('invalidSleepHours'));
@@ -99,7 +97,6 @@ export default function PlannerScreen() {
     Keyboard.dismiss();
   };
   
-  // date formatter aux func
   const formatDateTime = (isoString) => {
     const date = new Date(isoString);
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -128,11 +125,12 @@ export default function PlannerScreen() {
             </View>
             <TouchableOpacity style={styles.editSettingsButton} onPress={openSettings}>
               <Ionicons name="settings-outline" size={16} color="#8b5cf6" />
+              <Text style={styles.editSettingsText}>{t('editSettings') || 'Edit'}</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
-            <Ionicons name="flash" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Ionicons name="flash" size={20} color="#fff" style={styles.buttonIcon} />
             <Text style={styles.generateButtonText}>{t('generatePlan')}</Text>
           </TouchableOpacity>
         </View>
@@ -146,7 +144,7 @@ export default function PlannerScreen() {
       )}
 
       {hasGenerated && !isLoading && (
-        <View style={{ flex: 1 }}>
+        <View style={styles.flexActive}>
           <ScrollView style={styles.timelineScroll} showsVerticalScrollIndicator={false}>
             {plan.length === 0 ? (
               <View style={styles.emptyPlanBox}>
@@ -193,7 +191,7 @@ export default function PlannerScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark" size={20} color="#fff" style={{ marginRight: 5 }} />
+                    <Ionicons name="checkmark" size={20} color="#fff" style={styles.buttonIcon} />
                     <Text style={styles.acceptButtonText}>{t('acceptPlan')}</Text>
                   </>
                 )}
@@ -213,7 +211,7 @@ export default function PlannerScreen() {
           <View style={styles.modalOverlay}>
             <KeyboardAvoidingView
               behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={{ width: '100%' }}
+              style={styles.fullWidth}
             >
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
@@ -254,7 +252,7 @@ export default function PlannerScreen() {
                 />
 
                 <TouchableOpacity style={styles.saveButton} onPress={saveSettings}>
-                  <Text style={styles.saveButtonText}>{t('saveSettings')}</Text>
+                  <Text style={styles.saveButtonText}>{t('save')}</Text>
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
@@ -266,16 +264,18 @@ export default function PlannerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f7fb', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  container: { flex: 1, backgroundColor: '#d1e9ef', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
   header: { marginBottom: 20 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a' },
-  subtitle: { fontSize: 13, color: '#6b7280', marginTop: 6, lineHeight: 18 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#62119f' },
+  subtitle: { fontSize: 13, color: '#aa5ed3', marginTop: 6, lineHeight: 18 },
+  flexActive: { flex: 1 },
+  fullWidth: { width: '100%' },
+  buttonIcon: { marginRight: 8 },
 
-  // Welcome state
-  welcomeBox: { backgroundColor: '#fff', borderRadius: 16, padding: 25, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', marginTop: 30, elevation: 2 },
+  // Welcome box
+  welcomeBox: { backgroundColor: '#fff', borderRadius: 16, padding: 25, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', marginTop: 30, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
   iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f3e8ff', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   welcomeTitle: { fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 },
-  welcomeText: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 20, marginBottom: 15 },
   
   settingsContainer: { width: '100%', alignItems: 'center', marginBottom: 20 },
   settingsPreview: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', backgroundColor: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 8 },
@@ -283,24 +283,22 @@ const styles = StyleSheet.create({
   editSettingsButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   editSettingsText: { fontSize: 13, color: '#8b5cf6', fontWeight: 'bold', marginLeft: 5 },
 
-  generateButton: { backgroundColor: '#8b5cf6', flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 25, borderRadius: 12, alignItems: 'center', elevation: 3, marginTop: 5 },
+  generateButton: { backgroundColor: '#aa5ed3', flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 25, borderRadius: 12, alignItems: 'center', elevation: 3, marginTop: 5, shadowColor: '#8b5cf6', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3 },
   generateButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
-  // Loading state
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 15, color: '#4b5563', fontSize: 14, textAlign: 'center', paddingHorizontal: 30 },
 
-  // Timeline list
   timelineScroll: { flex: 1, marginTop: 10 },
   timelineNode: { flexDirection: 'row', minHeight: 110 },
   leftLineColumn: { alignItems: 'center', marginRight: 15, width: 20 },
-  timelineDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#8b5cf6', borderWidth: 3, borderColor: '#fff', zIndex: 2, elevation: 2, marginTop: 4 },
+  timelineDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#8b5cf6', borderWidth: 3, borderColor: '#fff', zIndex: 2, elevation: 2, marginTop: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1 },
   verticalLine: { width: 2, flex: 1, backgroundColor: '#e5e7eb', position: 'absolute', top: 12, bottom: 0 },
   
   cardContainer: { flex: 1, marginBottom: 20 },
   dateBadge: { alignSelf: 'flex-start', backgroundColor: '#e0e7ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginBottom: 6 },
   dateBadgeText: { fontSize: 12, fontWeight: 'bold', color: '#4338ca' },
-  sessionCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1 },
+  sessionCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1 },
   className: { fontSize: 12, fontWeight: 'bold', color: '#8b5cf6', textTransform: 'uppercase' },
   taskTitle: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', marginTop: 2 },
   messageText: { fontSize: 13, color: '#4b5563', marginTop: 8, fontStyle: 'italic' },
@@ -308,18 +306,18 @@ const styles = StyleSheet.create({
   emptyPlanBox: { alignItems: 'center', marginTop: 50 },
   emptyPlanText: { color: '#6b7280', textAlign: 'center', marginTop: 10, fontSize: 14 },
 
-  // Bottom action bar
-  actionContainer: { flexDirection: 'row', paddingVertical: 15, borderTopWidth: 1, borderTopColor: '#e5e7eb', backgroundColor: '#f5f7fb' },
+  // Actions
+  actionContainer: { flexDirection: 'row', paddingVertical: 15, borderTopWidth: 1, borderTopColor: '#e5e7eb', backgroundColor: '#f5f7fb', alignItems: 'center' },
   declineButton: { flex: 1, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   declineButtonText: { color: '#6b7280', fontSize: 16, fontWeight: '600' },
-  acceptButton: { flex: 2, backgroundColor: '#10b981', flexDirection: 'row', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 2 },
+  acceptButton: { flex: 2, backgroundColor: '#aa5ed3', flexDirection: 'row', paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 2, shadowColor: '#10b981', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2 },
   acceptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
-  // Modal styles
+  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#62119f' },
   inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 6, marginTop: 10 },
   input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 10 },
   saveButton: { backgroundColor: '#8b5cf6', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },

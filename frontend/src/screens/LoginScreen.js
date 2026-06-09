@@ -50,7 +50,7 @@ export default function LoginScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder={t('emailPlace')}
-          placeholderTextColor="#888"
+          placeholderTextColor="#a8a29e"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -61,7 +61,7 @@ export default function LoginScreen({ navigation }) {
           <TextInput
             style={styles.passwordInput}
             placeholder={t('passwordPlace')}
-            placeholderTextColor="#888"
+            placeholderTextColor="#a8a29e"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!isPasswordVisible}
@@ -70,13 +70,13 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity
             style={styles.eyeIcon}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-            >
-              <Ionicons
-                name={isPasswordVisible ? 'eye-off' : 'eye'}
-                size={22}
-                color="#6b7280"
-              />
-            </TouchableOpacity>
+          >
+            <Ionicons
+              name={isPasswordVisible ? 'eye-off' : 'eye'}
+              size={22}
+              color="#78716c"
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -93,7 +93,7 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity style={{ marginTop: 20 }} onPress={() => navigation.navigate('Register')}>
-        <Text style={{ color: '#2563eb', fontSize: 14, fontWeight: '500' }}>
+        <Text style={{ color: '#62119f', fontSize: 14, fontWeight: '600' }}>
           {t('noAccount')}
         </Text>
       </TouchableOpacity>
@@ -104,7 +104,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fb',
+    backgroundColor: '#bde9f3',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -112,12 +112,12 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1e3a8a',
+    color: '#62119f',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
+    color: '#62119f',
     marginBottom: 40,
   },
   inputContainer: {
@@ -126,48 +126,47 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#fffdfa',
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderRadius: 8,
     fontSize: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    color: '#000',
+    borderColor: '#e7e5e4',
+    color: '#44403c',
   },
-  // 🌟 ÚJ STÍLUSOK:
   passwordContainer: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#fffdfa',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    flexDirection: 'row', // Sorba rendezi az inputot és az ikont
+    borderColor: '#e7e5e4',
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
   passwordInput: {
-    flex: 1, // Elnyeli a maradék helyet az ikon mellett
+    flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#000',
+    color: '#44403c',
   },
   eyeIcon: {
-    paddingHorizontal: 15, // Kényelmesen koppintható méret az ikonnak
+    paddingHorizontal: 15,
   },
   button: {
     width: '100%',
-    backgroundColor: '#2563eb',
+    backgroundColor: '#aa5ed3',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#aa5ed3',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
   },
   buttonText: {

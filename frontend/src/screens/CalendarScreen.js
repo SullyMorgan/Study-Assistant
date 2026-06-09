@@ -158,6 +158,8 @@ export default function CalendarScreen({ navigation }) {
     });
 
     allAi.forEach(session => {
+      if (session.status === "completed") return;
+
       const dateKey = session.date;
       if (!marks[dateKey]) marks[dateKey] = { dots: [] };
       
@@ -244,7 +246,7 @@ export default function CalendarScreen({ navigation }) {
           subtitle: `${startT} - ${endT} ${sched.is_recurring ? t('repeatWeekly') : ''}`,
           type: 'user_schedule',
           color: '#10b981',
-          icon: 'barbell-outline'
+          icon: 'calendar-outline'
         });
       }
     });
@@ -260,13 +262,13 @@ export default function CalendarScreen({ navigation }) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1e3a8a" />
+        <ActivityIndicator size="large" color="#62119f" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f7fb' }}>
+    <View style={{ flex: 1, backgroundColor: '#d1e9ef' }}>
       <ScrollView
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       >
@@ -278,20 +280,20 @@ export default function CalendarScreen({ navigation }) {
             markingType={'multi-dot'}
             markedDates={markedDates}
             theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#b6c1cd',
-              selectedDayBackgroundColor: '#1e3a8a',
+              backgroundColor: '#fffdfa',
+              calendarBackground: '#fffdfa',
+              textSectionTitleColor: '#a8a29e',
+              selectedDayBackgroundColor: '#62119f',
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#10b981',
-              dayTextColor: '#2d4150',
-              textDisabledColor: '#d9e1e8',
-              dotColor: '#00adf5',
+              todayTextColor: '#16a34a',
+              dayTextColor: '#44403c',
+              textDisabledColor: '#e7e5e4',
+              dotColor: '#f97316',
               selectedDotColor: '#ffffff',
-              arrowColor: '#1e3a8a',
-              disabledArrowColor: '#d9e1e8',
-              monthTextColor: '#1e3a8a',
-              indicatorColor: 'blue',
+              arrowColor: '#62119f',
+              disabledArrowColor: '#e7e5e4',
+              monthTextColor: '#62119f',
+              indicatorColor: 'orange',
               textDayFontWeight: '500',
               textMonthFontWeight: 'bold',
               textDayHeaderFontWeight: 'bold',
@@ -308,7 +310,7 @@ export default function CalendarScreen({ navigation }) {
           
           {dayAgenda.length === 0 ? (
             <View style={styles.emptyAgendaBox}>
-              <Ionicons name="cafe-outline" size={36} color="#9ca3af" />
+              <Ionicons name="cafe-outline" size={36} color="#78716c" />
               <Text style={styles.emptyAgendaText}>{t('noTasksOrStudySessions')}</Text>
             </View>
           ) : (
@@ -335,7 +337,7 @@ export default function CalendarScreen({ navigation }) {
                   activeOpacity={isAiSession ? 0.7 : 1}
                 >
                   <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
-                    <Ionicons name={item.icon} size={22} color={item.color} />
+                    <Ionicons name={item.icon} size={22} color={item.color || '#62119f'} />
                   </View>
                   <View style={styles.agendaInfo}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
@@ -417,66 +419,65 @@ export default function CalendarScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
   calendarContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fffdfa',
     borderRadius: 16,
     margin: 15,
     paddingBottom: 10,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: '#7c2d12',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
   },
   agendaContainer: { paddingHorizontal: 20, marginTop: 5 },
-  agendaTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15, textTransform: 'capitalize' },
+  agendaTitle: { fontSize: 18, fontWeight: 'bold', color: '#62119f', marginBottom: 15, textTransform: 'capitalize' },
   
   agendaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#fffdfa',
     padding: 15,
     borderRadius: 12,
     marginBottom: 12,
     borderLeftWidth: 5,
-    borderLeftColor: '#e5e7eb',
+    borderLeftColor: '#f5e0cf',
     borderWidth: 1,
-    borderColor: '#e5e7eb'
+    borderColor: '#62119f'
   },
   iconContainer: { padding: 8, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   agendaInfo: { flex: 1, marginLeft: 15 },
-  eventTitle: { fontSize: 15, fontWeight: 'bold', color: '#1f2937' },
+  eventTitle: { fontSize: 15, fontWeight: 'bold', color: '#44403c' },
   eventSubtitle: { fontSize: 12, fontWeight: '600', marginTop: 2 },
 
-  emptyAgendaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', borderStyle: 'dashed' },
-  emptyAgendaText: { color: '#6b7280', fontSize: 13, marginTop: 8, textAlign: 'center', paddingHorizontal: 20 },
+  emptyAgendaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: '#fffdfa', borderRadius: 12, borderWidth: 1, borderColor: '#e7e5e4', borderStyle: 'dashed' },
+  emptyAgendaText: { color: '#78716c', fontSize: 13, marginTop: 8, textAlign: 'center', paddingHorizontal: 20 },
 
-  // 🌟 MODAL ÉS FAB ZSENIÁLIS STÍLUSA
   fab: {
     position: 'absolute',
     right: 20,
     bottom: 20,
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#aa5ed3',
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: '#aa5ed3',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 3.84,
   },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: '#fff', width: '85%', padding: 25, borderRadius: 16, elevation: 5 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 5 },
-  inputLabel: { fontSize: 12, fontWeight: '600', color: '#4b5563', marginBottom: 4 },
-  input: { borderWidth: 1, borderColor: '#e5e7eb', padding: 12, borderRadius: 8, marginBottom: 12, fontSize: 14, color: '#1f2937' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(68,64,60,0.4)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: '#fffdfa', width: '85%', padding: 25, borderRadius: 16, elevation: 5 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#62119f', marginBottom: 5 },
+  inputLabel: { fontSize: 12, fontWeight: '600', color: '#78716c', marginBottom: 4 },
+  input: { borderWidth: 1, borderColor: '#e7e5e4', padding: 12, borderRadius: 8, marginBottom: 12, fontSize: 14, color: '#44403c', backgroundColor: '#fff' },
   rowInputs: { flexDirection: 'row', justifyContent: 'space-between' },
   switchContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 15 },
   cancelBtn: { padding: 12, marginRight: 15 },
-  saveBtn: { backgroundColor: '#10b981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' }
+  saveBtn: { backgroundColor: '#aa5ed3', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' }
 });

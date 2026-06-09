@@ -21,13 +21,8 @@ export default function StudySessionScreen({ route, navigation }) {
   let parsedId = null;
 
   if (rawId !== undefined && rawId !== null) {
-    if (typeof rawId === 'number' && !isNaN(rawId)) {
-      parsedId = rawId;
-    } else {
-      const stringId = String(rawId);
-      const cleanNumbers = stringId.replace(/\D/g, '');
-      parsedId = cleanNumbers ? parseInt(cleanNumbers, 10) : null;
-    }
+    const num = Number(rawId);
+    parsedId = !isNaN(num) ? num : null;
   }
 
   const sessionId = parsedId;

@@ -21,3 +21,9 @@ export const createClass = async (classData) => {
   const response = await apiClient.post('/classes/', classData, headers);
   return response.data;
 };
+
+export const deleteClass = async (classId) => {
+  const headers = await getHeaders();
+  const response = await apiClient.delete(`/classes/${classId}`, headers);
+  return response.data;
+}

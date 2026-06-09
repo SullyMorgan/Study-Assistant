@@ -28,17 +28,18 @@ function MainTabNavigator({ navigation }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#6b7280',
-        headerStyle: { backgroundColor: '#f5f7fb' },
-        headerTintColor: '#1e3a8a',
+        tabBarActiveTintColor: '#62119f',
+        tabBarInactiveTintColor: '#62119f',
+        tabBarStyles: { backgroundColor: '#d1e9ef', borderTopColor: '#62119f' },
+        headerStyle: { backgroundColor: '#d1e9ef', borderBottomWidth: 1, borderBottomColor: '#d1e9ef' },
+        headerTintColor: '#62119f',
         headerTitleStyle: { fontWeight: 'bold' },
         headerRight: () => (
           <TouchableOpacity
             style={{ marginRight: 15 }}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Ionicons name="person-circle" size={28} color="#1e3a8a" />
+            <Ionicons name="person-circle" size={28} color="#62119f" />
           </TouchableOpacity>
         ),
         tabBarIcon: ({ focused, color, size }) => {
@@ -126,8 +127,8 @@ export default function AppNavigator() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' }}>
+        <ActivityIndicator size="large" color="#62119f" />
       </View>
     );
   }
@@ -138,37 +139,37 @@ export default function AppNavigator() {
         initialRouteName={userToken == null ? "Login" : "Main"}
         screenOptions={{ headerShown: false }}
       >
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ title: t('login'), headerShown: false }}
-          />
-          <Stack.Screen
-            name="Main"
-            component={MainTabNavigator}
-            options={{ title: t('dashboard'), headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ title: t('register'), headerShown: false }}
-          />
-          <Stack.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{
-              title: t('myProfile'),
-              headerShown: true,
-              headerTintColor: '#1e3a8a',
-              headerStyle: { backgroundColor: '#f5f7fb' },
-              headerTitleStyle: { fontWeight: 'bold' }
-            }}
-          />
-          <Stack.Screen
-            name="StudySession"
-            component={StudySessionScreen}
-            options={{ title: t('studySession'), headerShown: false }}
-          />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ title: t('login'), headerShown: false }}
+        />
+        <Stack.Screen
+          name="Main"
+          component={MainTabNavigator}
+          options={{ title: t('dashboard'), headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{ title: t('register'), headerShown: false }}
+        />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            title: t('myProfile'),
+            headerShown: true,
+            headerTintColor: '#62119f',
+            headerStyle: { backgroundColor: '#d1e9ef', borderBottomWidth: 1, borderBottomColor: '#e7e5e4' },
+            headerTitleStyle: { fontWeight: 'bold' }
+          }}
+        />
+        <Stack.Screen
+          name="StudySession"
+          component={StudySessionScreen}
+          options={{ title: t('studySession'), headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

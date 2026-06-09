@@ -11,5 +11,5 @@ class Class(Base):
   difficulty = Column(String)
 
   owner = relationship("User", back_populates="classes")
-  sessions = relationship("StudySession", back_populates="study_class")
-  tasks = relationship("Task", back_populates="related_class")
+  sessions = relationship("StudySession", back_populates="study_class", cascade="all, delete-orphan")
+  tasks = relationship("Task", back_populates="related_class", cascade="all, delete-orphan")

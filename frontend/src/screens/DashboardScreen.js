@@ -164,13 +164,13 @@ export default function DashboardScreen({ navigation }) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1e3a8a" />
+        <ActivityIndicator size="large" color="#62119f" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f7fb' }}>
+    <View style={{ flex: 1, backgroundColor: '#d1e9ef' }}>
       <ScrollView
         style={styles.container}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
@@ -184,7 +184,7 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.sectionTitle}>{t('urgentDeadlines')}</Text>
           {deadlines.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Ionicons name="checkmark-done-circle" size={40} color="#10b981" />
+              <Ionicons name="checkmark-done-circle" size={40} color="#16a34a" />
               <Text style={styles.emptyText}>{t('noUrgentTasks')}</Text>
             </View>
           ) : (
@@ -205,7 +205,7 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                     <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                     <View style={styles.cardFooter}>
-                      <Ionicons name="calendar-outline" size={16} color="#6b7280" />
+                      <Ionicons name="calendar-outline" size={16} color="#78716c" />
                       <Text style={styles.cardDate}>{formatDate(item.deadline)}</Text>
                     </View>
                   </View>
@@ -229,7 +229,7 @@ export default function DashboardScreen({ navigation }) {
                 <Ionicons
                   name={item.is_completed ? "checkbox" : "square-outline"}
                   size={24}
-                  color={item.is_completed ? "#10b981" : "#1e3a8a"}
+                  color={item.is_completed ? "#16a34a" : "#62119f"}
                 />
                 <View style={styles.taskTextContainer}>
                   <Text style={[styles.taskText, item.is_completed && styles.taskTextCompleted]}>
@@ -270,7 +270,7 @@ export default function DashboardScreen({ navigation }) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{t('addNewTask')}</Text>
                   <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#6b7280" />
+                    <Ionicons name="close" size={24} color="#78716c" />
                   </TouchableOpacity>
                 </View>
 
@@ -278,6 +278,7 @@ export default function DashboardScreen({ navigation }) {
                 <TextInput
                   style={styles.input}
                   placeholder={t('taskTitlePlace')}
+                  placeholderTextColor="#a8a29e"
                   value={newTitle}
                   onChangeText={setNewTitle}
                 />
@@ -305,7 +306,7 @@ export default function DashboardScreen({ navigation }) {
                   style={styles.datePickerButton} 
                   onPress={() => setShowDatePicker(true)}
                 >
-                  <Ionicons name="calendar-outline" size={20} color="#1e3a8a" style={{ marginRight: 10 }} />
+                  <Ionicons name="calendar-outline" size={20} color="#62119f" style={{ marginRight: 10 }} />
                   <Text style={styles.datePickerButtonText}>
                     {formatDate(taskDeadline)}
                   </Text>
@@ -326,6 +327,7 @@ export default function DashboardScreen({ navigation }) {
                   <TextInput
                     style={styles.input}
                     placeholder={t('enterClassId')}
+                    placeholderTextColor="#a8a29e"
                     keyboardType="numeric"
                     value={selectedClassId}
                     onChangeText={setSelectedClassId}
@@ -364,52 +366,52 @@ export default function DashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 20 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f7fb' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafaf9' },
   header: { marginTop: 30, marginBottom: 25 },
-  welcomeText: { fontSize: 18, color: '#6b7280', fontWeight: '500' },
-  nameText: { fontSize: 26, fontWeight: 'bold', color: '#1e3a8a' }, // 🌟 JAVÍTVA: Itt volt elcsúszva a stílus hivatkozása
+  welcomeText: { fontSize: 18, color: '#aa5ed3', fontWeight: '500' },
+  nameText: { fontSize: 26, fontWeight: 'bold', color: '#62119f' },
   sectionContainer: { marginBottom: 30 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#62119f', marginBottom: 15 },
   
-  deadlineCard: { backgroundColor: '#fff', width: 220, borderRadius: 12, padding: 15, marginRight: 15, borderWidth: 1, borderColor: '#e5e7eb', borderLeftWidth: 5 },
+  deadlineCard: { backgroundColor: '#fffdfa', width: 220, borderRadius: 12, padding: 15, marginRight: 15, borderWidth: 1, borderColor: '#62119f', borderLeftWidth: 5 },
   cardHeader: { flexDirection: 'row', marginBottom: 10 },
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   badgeText: { fontSize: 12, fontWeight: 'bold', marginLeft: 4 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', marginBottom: 12 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#44403c', marginBottom: 12 },
   cardFooter: { flexDirection: 'row', alignItems: 'center' },
-  cardDate: { fontSize: 13, color: '#6b7280', marginLeft: 6, fontWeight: '500' },
-  emptyCard: { backgroundColor: '#fff', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb', borderStyle: 'dashed' },
-  emptyText: { color: '#4b5563', marginTop: 8, fontWeight: '500', fontSize: 14 },
+  cardDate: { fontSize: 13, color: '#78716c', marginLeft: 6, fontWeight: '500' },
+  emptyCard: { backgroundColor: '#fffdfa', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#62119f', borderStyle: 'dashed' },
+  emptyText: { color: '#57534e', marginTop: 8, fontWeight: '500', fontSize: 14 },
 
-  taskItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e5e7eb' },
-  taskItemCompleted: { backgroundColor: '#f9fafb', borderColor: '#f3f4f6' },
+  taskItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fffdfa', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#62119f' },
+  taskItemCompleted: { backgroundColor: '#f5f5f4', borderColor: '#e7e5e4' },
   taskTextContainer: { marginLeft: 15, flex: 1 },
-  taskText: { fontSize: 16, fontWeight: '500', color: '#1f2937' },
-  taskTextCompleted: { textDecorationLine: 'line-through', color: '#9ca3af' },
-  taskSubtext: { fontSize: 12, color: '#6b7280', marginTop: 2 },
-  noTasksText: { color: '#6b7280', textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
+  taskText: { fontSize: 16, fontWeight: '500', color: '#44403c' },
+  taskTextCompleted: { textDecorationLine: 'line-through', color: '#a8a29e' },
+  taskSubtext: { fontSize: 12, color: '#78716c', marginTop: 2 },
+  noTasksText: { color: '#78716c', textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
 
-  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#1e3a8a', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
+  fab: { position: 'absolute', bottom: 20, right: 20, backgroundColor: '#aa5ed3', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#ea580c', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(68,64,60,0.4)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fffdfa', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 25, paddingBottom: Platform.OS === 'ios' ? 40 : 25 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e3a8a' },
-  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 8, marginTop: 10 },
-  input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 15 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#62119f' },
+  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#57534e', marginBottom: 8, marginTop: 10 },
+  input: { backgroundColor: '#f5f5f4', padding: 12, borderRadius: 8, fontSize: 16, color: '#44403c', marginBottom: 15 },
   
-  datePickerButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, marginBottom: 15 },
-  datePickerButtonText: { fontSize: 16, color: '#1f2937', fontWeight: '500' },
+  datePickerButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f4', padding: 12, borderRadius: 8, marginBottom: 15 },
+  datePickerButtonText: { fontSize: 16, color: '#44403c', fontWeight: '500' },
 
   typeSelectorContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  typeButton: { flex: 1, paddingVertical: 10, backgroundColor: '#e5e7eb', borderRadius: 8, alignItems: 'center', marginHorizontal: 4 },
-  typeButtonText: { fontSize: 12, fontWeight: 'bold', color: '#4b5563' },
+  typeButton: { flex: 1, paddingVertical: 10, backgroundColor: '#e7e5e4', borderRadius: 8, alignItems: 'center', marginHorizontal: 4 },
+  typeButtonText: { fontSize: 12, fontWeight: 'bold', color: '#57534e' },
   
   classSelector: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
-  classOption: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#e5e7eb', borderRadius: 20, marginRight: 8, marginBottom: 8 },
-  classOptionSelected: { backgroundColor: '#1e3a8a' },
-  classOptionText: { fontSize: 14, color: '#4b5563' },
+  classOption: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#e7e5e4', borderRadius: 20, marginRight: 8, marginBottom: 8 },
+  classOptionSelected: { backgroundColor: '#aa5ed3' },
+  classOptionText: { fontSize: 14, color: '#57534e' },
 
-  saveButton: { backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+  saveButton: { backgroundColor: '#62119f', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });
