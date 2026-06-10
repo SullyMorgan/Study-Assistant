@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { getStudyPlan, acceptStudyPlan } from '../api/planner';
 import { useTranslation } from 'react-i18next';
+import { fetchTasks } from '../api/tasks';
 
 export default function PlannerScreen() {
   const { t } = useTranslation();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
   const [plan, setPlan] = useState([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [hasActiveTasks, setHasActiveTasks] = useState(false);
 
   // Alapértelmezett beállítások állapota
   const [sleepStart, setSleepStart] = useState(23);
@@ -35,6 +38,23 @@ export default function PlannerScreen() {
   const [tempSleepStart, setTempSleepStart] = useState('23');
   const [tempSleepEnd, setTempSleepEnd] = useState('8');
   const [tempMaxSessions, setTempMaxSessions] = useState('3');
+
+  const checkActiveTasks = async () => {
+    try {
+      const allTasks = await fetchTasks();
+      const uncompletedTasks = allTasks.filter(task => !task.is_completed);
+      setHasActiveTasks(uncompletedTasks.length > 0);
+    } catch (error) {
+      console.error(error);
+      setHasActiveTasks(false);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkActiveTasks();
+  }, []);
 
   const handleGeneratePlan = async () => {
     setIsLoading(true);
@@ -61,6 +81,8 @@ export default function PlannerScreen() {
       Alert.alert(t('planAccepted'), t('planAcceptedMessage'));
       setPlan([]);
       setHasGenerated(false);
+
+      checkActiveTasks();
     } catch (error) {
       console.error(error);
       Alert.alert(t('errorTitle'), error.message || t('failedToAcceptPlan'));
@@ -104,6 +126,14 @@ export default function PlannerScreen() {
     return { dateStr, timeStr };
   };
 
+  if (isInitialLoading) {
+    return (
+      <View style={styles.loadingBox}>
+        <ActivityIndicator size="large" color="#8b5cf6" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -129,10 +159,19 @@ export default function PlannerScreen() {
             </TouchableOpacity>
           </View>
 
+        {!hasActiveTasks ? (
+          <View style={styles.noTasksWarningContainer}>
+            <Ionicons name="warning-outline" size={22} color="#b45309" style={{ marginRight: 10 }} />
+            <Text style={styles.noTasksWarningText}>
+              {t('noActiveTasks')}
+            </Text>
+          </View>
+        ) : (
           <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
             <Ionicons name="flash" size={20} color="#fff" style={styles.buttonIcon} />
             <Text style={styles.generateButtonText}>{t('generatePlan')}</Text>
           </TouchableOpacity>
+        )}
         </View>
       )}
 
@@ -321,5 +360,22 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#4b5563', marginBottom: 6, marginTop: 10 },
   input: { backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8, fontSize: 16, color: '#000', marginBottom: 10 },
   saveButton: { backgroundColor: '#8b5cf6', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  noTasksWarningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#fcd34d'
+  },
+  noTasksWarningText: {
+    color: '#92400e',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 18
+  },
 });

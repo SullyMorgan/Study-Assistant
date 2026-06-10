@@ -329,7 +329,7 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fffdfa', padding: 20 },
+  container: { flex: 1, backgroundColor: '#d1e9ef', padding: 20 },
   profileHeader: { alignItems: 'center', marginTop: 20, marginBottom: 40 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#1e3a8a', marginTop: 10 },
   fullWidth: { width: '100%' },

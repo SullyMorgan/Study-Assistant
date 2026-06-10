@@ -324,14 +324,12 @@ export default function DashboardScreen({ navigation }) {
 
                 <Text style={styles.inputLabel}>{t('selectClass')}</Text>
                 {classes.length === 0 ? (
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('enterClassId')}
-                    placeholderTextColor="#a8a29e"
-                    keyboardType="numeric"
-                    value={selectedClassId}
-                    onChangeText={setSelectedClassId}
-                  />
+                  <View style={styles.noClassWarningContainer}>
+                    <Ionicons name="warning-outline" size={20} color="#ef4444" style={{ marginRight: 8 }}/>
+                    <Text style={styles.noClassWarningText}>
+                      {t('noClassesForTask')}
+                    </Text>
+                  </View>
                 ) : (
                   <View style={styles.classSelector}>
                     {classes.map((cls) => (
@@ -349,9 +347,9 @@ export default function DashboardScreen({ navigation }) {
                 )}
 
                 <TouchableOpacity
-                  style={styles.saveButton}
+                  style={[styles.saveButton, classes.length === 0 && styles.saveButtonDisabled]}
                   onPress={handleCreateTask}
-                  disabled={isSaving}
+                  disabled={isSaving || classes.length === 0}
                 >
                   {isSaving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('createTask')}</Text>}
                 </TouchableOpacity>
@@ -413,5 +411,25 @@ const styles = StyleSheet.create({
   classOptionText: { fontSize: 14, color: '#57534e' },
 
   saveButton: { backgroundColor: '#62119f', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  noClassWarningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#fca5a5'
+  },
+  noClassWarningText: {
+    color: '#b91c1c',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#a8a29e',
+    opacity: 0.7
+  }
 });

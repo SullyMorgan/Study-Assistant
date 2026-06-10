@@ -58,6 +58,7 @@ const resources = {
       "noTasks": "Nincsenek feladataid",
       "user": "Felhasználó",
       "deadline": "Határidő",
+      "noClassesForTask": "Még nem adtál hozzá egy tantárgyat sem. Adj hozzá egy tantárgyat, hogy társíthasd ehhez a feladathoz!",
 
       "exam": "Vizsga",
       "assignment": "Házi feladat",
@@ -152,6 +153,7 @@ const resources = {
       "sleepStart": "Mikor szoktál általában lefeküdni?",
       "sleepEnd": "Mikor szoktál általában felkelni?",
       "planSettings": "Terv beállítások",
+      "noActiveTasks": "Nincsenek aktív feladataid, így nincs mit beilleszteni a tanulási tervedbe! Adj hozzá egy feladatot a kezdéshez!",
 
       // session screen
       "endSessionTitle": "Tanulás befejezése",
@@ -213,6 +215,7 @@ const resources = {
       "calendar": "Calendar",
       "profile": "Profile",
       "planner": "Planner",
+      "classes": "Courses",
 
       "currentPasswordPlace": "Current password",
       "newPasswordPlace": "New password",
@@ -226,6 +229,7 @@ const resources = {
       "noUrgentTasks": "No urgent deadlines",
       "noTasks": "You have no tasks",
       "user": "User",
+      "noClassesForTask": "You haven't added courses yet. Add a course to associate with this task!",
 
       "exam": "Exam",
       "assignment": "Assignment",
@@ -321,6 +325,7 @@ const resources = {
       "sleepEnd": "When do you usually wake up?",
       "planSettings": "Plan Settings",
       "editSettings": "Settings",
+      "noActiveTasks": "You have no active tasks, so there's nothing to include in your study plan! Add a task to get started!",
 
       // session screen
       "endSessionTitle": "End Session",
@@ -382,6 +387,7 @@ const resources = {
       "calendar": "Calendar",
       "profile": "Profil",
       "planner": "Planificator",
+      "classes": "Cursuri",
 
       "currentPasswordPlace": "Parola actuală",
       "newPasswordPlace": "Parola nouă",
@@ -394,6 +400,7 @@ const resources = {
       "noUrgentTasks": "Nu există termene limită urgente",
       "noTasks": "Nu ai sarcini",
       "user": "Utilizator",
+      "noClassesForTask": "Nu ai adăugat încă niciun curs. Adaugă un curs pentru a-l asocierea cu această sarcină!",
 
       "exam": "Examen",
       "assignment": "Temă",
@@ -490,6 +497,7 @@ const resources = {
       "sleepEnd": "Când te trezești de obicei?",
       "planSettings": "Setări plan",
       "editSettings": "Setări",
+      "noActiveTasks": "Nu ai sarcini active, deci nu există nimic de inclus în planul tău de studiu! Adaugă o sarcină pentru a începe!",
 
       // session screen
       "endSessionTitle": "Încheie sesiunea",

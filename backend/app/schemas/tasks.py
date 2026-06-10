@@ -11,7 +11,7 @@ class TaskBase(BaseModel):
   title: str
   deadline: datetime
   type: TaskType
-  class_id: int
+  class_id: int | None = None
 
 class TaskCreate(TaskBase):
   pass
