@@ -22,6 +22,7 @@ import { fetchTasks, toggleTask, fetchClasses, createTask } from '../api/tasks';
 import { Ionicons } from '@expo/vector-icons';
 import { registerForPushNotifications } from './ProfileScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { requestNotificationPermission } from '../utils/notifications';
 
 export default function DashboardScreen({ navigation }) {
   const { t } = useTranslation();
@@ -66,7 +67,8 @@ export default function DashboardScreen({ navigation }) {
 
   useEffect(() => {
     // notification test
-    registerForPushNotifications();
+    //registerForPushNotifications();
+    requestNotificationPermission();
     loadDashboardData();
   }, []);
 

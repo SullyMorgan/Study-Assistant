@@ -25,10 +25,14 @@ export const completeStudySession = async (sessionId, actualDurationMinutes) => 
 export const registerPushToken = async (expoPushToken) => {
   try {
     const response = await apiClient.post('/sessions/register-push', {
-      value: expoPushToken,
+      token: expoPushToken,
     });
     return response.data;
   } catch (error) {
+    console.log('MESSAGE:', error.message);
+    console.log('CODE:', error.code);
+    console.log('STATIS:', error.response?.status);
+    console.log('RESPONSE:', error.response?.data);
     throw error.response ? error.response.data : new Error('Failed to register push token');
   }
 };

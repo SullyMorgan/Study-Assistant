@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getStudyPlan, acceptStudyPlan } from '../api/planner';
 import { useTranslation } from 'react-i18next';
 import { fetchTasks } from '../api/tasks';
+import { scheduleStudyReminder } from '../utils/notifications';
 
 export default function PlannerScreen() {
   const { t } = useTranslation();
@@ -78,6 +79,11 @@ export default function PlannerScreen() {
     setIsAccepting(true);
     try {
       await acceptStudyPlan();
+
+      for (const session of plan) {
+        await scheduleStudyReminder(session);
+      }
+
       Alert.alert(t('planAccepted'), t('planAcceptedMessage'));
       setPlan([]);
       setHasGenerated(false);
