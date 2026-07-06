@@ -64,12 +64,12 @@ def get_study_window_days(task):
 def calculate_priority(task, reference_date):
     difficulty = int(task.related_class.difficulty)
 
-    score = difficulty
+    score = difficulty * 2
 
     if task.type == models.TaskType.exam:
-        score += 5
+        score += 10
     elif task.type == models.TaskType.project:
-        score += 3
+        score += 5
 
     days_until = (
         task.deadline - reference_date
@@ -78,7 +78,7 @@ def calculate_priority(task, reference_date):
     if days_until < 0:
         return -9999
     
-    urgency_bonus = 20 / (days_until + 1)
+    urgency_bonus = 40 / (days_until + 0.5)
 
     return score + urgency_bonus
 
@@ -87,11 +87,36 @@ def can_study_task(task, study_date):
 
     earliest_study_date = task.deadline - timedelta(days=window_days)
 
-    return study_date >= earliest_study_date or study_date < task.deadline
+    #return study_date >= earliest_study_date or study_date < task.deadline
+    return earliest_study_date <= study_date < task.deadline
 
 def get_best_task(task_pool, study_start):
     candidates = []
 
+    upcoming_exams = []
+    for task_info in task_pool:
+        if task_info["sessions_left"] <= 0:
+            continue
+        t = task_info["model"]
+        if t.type == models.TaskType.exam and t.deadline > study_start:
+            upcoming_exams.append(t)
+
+    upcoming_exams.sort(key=lambda x: x.deadline)
+
+    upcoming_exam_class_id = None
+
+    if upcoming_exams:
+        next_exam = upcoming_exams[0]
+
+        exam_day = next_exam.deadline.date()
+        study_day = study_start.date()
+
+        days_until_exam = (exam_day - study_day).days
+        print(f"Days until next exam '{next_exam.title}': {days_until_exam}")
+        if days_until_exam <= 1:
+            upcoming_exam_class_id = next_exam.class_id
+
+    
     for task_info in task_pool:
         if task_info["sessions_left"] <= 0:
             continue
@@ -102,6 +127,9 @@ def get_best_task(task_pool, study_start):
             continue
 
         if not can_study_task(task, study_start):
+            continue
+
+        if upcoming_exam_class_id is not None and task.class_id != upcoming_exam_class_id:
             continue
 
         priority = calculate_priority(task, study_start)
