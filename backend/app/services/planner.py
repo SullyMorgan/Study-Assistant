@@ -158,7 +158,13 @@ def get_best_task_backward(task_pool, study_start):
 
         task = task_info["model"]
 
-        if task.deadline <= study_start:
+        if task.type == models.TaskType.exam:
+            latest_allowed_study_end = task.deadline - timedelta(hours=2)
+        else:
+            latest_allowed_study_end = task.deadline
+
+        study_end_estimate = study_start + timedelta(minutes=SESSION_DURATION)
+        if study_end_estimate > latest_allowed_study_end:
             continue
 
         time_until = task.deadline - study_start

@@ -39,7 +39,8 @@ export default function DashboardScreen({ navigation }) {
   
   const [taskDeadline, setTaskDeadline] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
 
   const loadDashboardData = async () => {
@@ -125,13 +126,28 @@ export default function DashboardScreen({ navigation }) {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
       if (event.type === 'set' && selectedDate) {
-        setTaskDeadline(selectedDate);
+        const currentDeadline = new Date(taskDeadline);
+        currentDeadline.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        setTaskDeadline(currentDeadline);
       }
     }
     else if (Platform.OS === 'ios') {
       if (selectedDate) {
         setTaskDeadline(selectedDate);
       }
+    }
+  };
+
+  const onTimeChange = (event, selectedTime) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+      if (event.type === 'set' && selectedTime) {
+        const currentDeadline = new Date(taskDeadline);
+        currentDeadline.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+        setTaskDeadline(currentDeadline);
+      }
+    } else if (Platform.OS === 'ios') {
+      if (selectedTime) setTaskDeadline(selectedTime);
     }
   };
 
@@ -161,6 +177,11 @@ export default function DashboardScreen({ navigation }) {
   const formatDate = (dateString) => {
     const d = new Date(dateString);
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const formatTime = (dateString) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false  });
   };
 
   if (isLoading) {
@@ -208,7 +229,7 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                     <View style={styles.cardFooter}>
                       <Ionicons name="calendar-outline" size={16} color="#78716c" />
-                      <Text style={styles.cardDate}>{formatDate(item.deadline)}</Text>
+                      <Text style={styles.cardDate}>{formatDate(item.deadline)} | {formatTime(item.deadline)}</Text>
                     </View>
                   </View>
                 );
@@ -238,7 +259,7 @@ export default function DashboardScreen({ navigation }) {
                     {item.title}
                   </Text>
                   <Text style={styles.taskSubtext}>
-                    {getClassNameById(item.class_id)} | {formatDate(item.deadline)}
+                    {getClassNameById(item.class_id)} | {formatDate(item.deadline)} {formatTime(item.deadline)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -304,15 +325,27 @@ export default function DashboardScreen({ navigation }) {
                 </View>
 
                 <Text style={styles.inputLabel}>{t('deadline')}</Text>
-                <TouchableOpacity 
-                  style={styles.datePickerButton} 
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Ionicons name="calendar-outline" size={20} color="#62119f" style={{ marginRight: 10 }} />
-                  <Text style={styles.datePickerButtonText}>
-                    {formatDate(taskDeadline)}
-                  </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <TouchableOpacity
+                    style={[styles.datePickerButton, { flex: 1, marginRight: 8 }]}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Ionicons name="calendar-outline" size={20} color="#62119f" style={{ marginRight: 10 }} />
+                    <Text style={styles.datePickerButtonText}>
+                      {formatDate(taskDeadline)}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.datePickerButton, { flex: 1, marginLeft: 8 }]}
+                    onPress={() => setShowTimePicker(true)}
+                  >
+                    <Ionicons name="time-outline" size={20} color="#62119f" style={{ marginRight: 10 }} />
+                    <Text style={styles.datePickerButtonText}>
+                      {formatTime(taskDeadline)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
                 {showDatePicker && (
                   <DateTimePicker
@@ -321,6 +354,16 @@ export default function DashboardScreen({ navigation }) {
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     minimumDate={new Date()}
                     onChange={onDateChange}
+                  />
+                )}
+
+                {showTimePicker && (
+                  <DateTimePicker
+                    value={taskDeadline}
+                    mode="time"
+                    is24Hour={true}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onTimeChange}
                   />
                 )}
 

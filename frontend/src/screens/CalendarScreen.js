@@ -208,10 +208,14 @@ export default function CalendarScreen({ navigation }) {
     allTasks.forEach(t => {
       if (t.deadline && t.deadline.split('T')[0] === dateStr) {
         if (t.is_completed || t.completed || t.status === 'completed') return;
+
+        const taskTime = new Date(t.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const typeLabel = t.type ? t.type.toUpperCase() : 'TASK';
+        
         agenda.push({
           id: `task-${t.id}`,
           title: t.title,
-          subtitle: t.type ? t.type.toUpperCase() : 'TASK',
+          subtitle: `${typeLabel} | ${taskTime}`,
           type: 'deadline',
           color: t.type === 'exam' ? '#ef4444' : '#3b82f6',
           icon: t.type === 'exam' ? 'school-outline' : 'document-text-outline'
