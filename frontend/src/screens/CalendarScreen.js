@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderLeftWidth: 5,
     borderLeftColor: '#f5e0cf',
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: '#62119f'
   },
   iconContainer: { padding: 8, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 15, fontWeight: 'bold', color: '#44403c' },
   eventSubtitle: { fontSize: 12, fontWeight: '600', marginTop: 2 },
 
-  emptyAgendaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: '#fffdfa', borderRadius: 12, borderWidth: 1, borderColor: '#e7e5e4', borderStyle: 'dashed' },
+  emptyAgendaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, backgroundColor: '#fffdfa', borderRadius: 12, borderWidth: 0, borderColor: '#e7e5e4', borderStyle: 'dashed' },
   emptyAgendaText: { color: '#78716c', fontSize: 13, marginTop: 8, textAlign: 'center', paddingHorizontal: 20 },
 
   fab: {

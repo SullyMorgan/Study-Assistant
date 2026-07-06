@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#62119f', marginTop: 10 },
   subTitle: { fontSize: 13, color: '#aa5ed3', marginTop: 5, marginBottom: 20, lineHeight: 18 },
   
-  materialCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#62119f' },
+  materialCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 0, borderColor: '#62119f' },
   materialIconContainer: { backgroundColor: '#ffedd5', padding: 10, borderRadius: 10 },
   materialInfo: { flex: 1, marginLeft: 15 },
   materialTitle: { fontSize: 16, fontWeight: 'bold', color: '#44403c' },
@@ -519,8 +519,8 @@ const styles = StyleSheet.create({
   closeDetailsBtn: { flexDirection: 'row', alignItems: 'center', color: '#62119f' },
   detailsHeaderTitle: { fontSize: 18, fontWeight: 'bold', color: '#62119f', marginLeft: 10, flex: 1 },
   
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', paddingVertical: 5 },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabBar: { flexDirection: 'row', backgroundColor: '#fff', height: 50, alignItems: 'stretch', borderBottomWidth: 1, borderBottomColor: '#e7e5e4' },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 0, borderBottomWidth: 3, borderBottomColor: 'transparent', position: 'relative' },
   activeTab: { borderBottomColor: '#62119f' },
   tabText: { fontSize: 14, color: '#78716c', marginLeft: 6, fontWeight: '500' },
   activeTabText: { color: '#62119f', fontWeight: 'bold' },

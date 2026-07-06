@@ -133,6 +133,7 @@ const resources = {
       "quizFailed": "Nem sikerült generálni a kvízt. Kérlek próbáld újra.",
       "answerExplanation": "Magyarázat",
       "pdfDoc": "PDF dokumentum",
+      "yourScore": "Az eredményed",
 
       // planner screen
       "studyPlan": "Tanulási terv készítése",
@@ -158,7 +159,7 @@ const resources = {
       // session screen
       "endSessionTitle": "Tanulás befejezése",
       "endSessionMsg": "Biztosan be szeretnéd fejezni a tanulást?",
-      "continueStudying": "Tovább a tanulással",
+      "continueStudy": "Tovább a tanulással",
       "endSession": "Tanulás befejezése",
       "sessionNotFound": "A tanulási folyamat nem található.",
       "sessionSavedMsg": "A tanulási folyamat sikeresen mentve.",
@@ -305,6 +306,7 @@ const resources = {
       "answerExplanation": "Explanation",
       "uploadSuccess": "Material uploaded and processed successfully!",
       "pdfDoc": "PDF Document",
+      "yourScore": "Your Score",
 
       // planner screen
       "studyPlan": "Plan your study sessions",
@@ -330,7 +332,7 @@ const resources = {
       // session screen
       "endSessionTitle": "End Session",
       "endSessionMsg": "Are you sure you want to end your study session?",
-      "continueStudying": "Continue Studying",
+      "continueStudy": "Continue Studying",
       "endSession": "End Session",
       "sessionNotFound": "Study session not found.",
       "sessionSavedMsg": "Your study session has been saved successfully!",
@@ -477,6 +479,7 @@ const resources = {
       "answerExplanation": "Explicație",
       "uploadSuccess": "Material încărcat și procesat cu succes!",
       "pdfDoc": "Document PDF",
+      "yourScore": "Scorul tău",
 
       // planner screen
       "studyPlan": "Planifică-ți sesiunile de studiu",
@@ -502,7 +505,7 @@ const resources = {
       // session screen
       "endSessionTitle": "Încheie sesiunea",
       "endSessionMsg": "Sigur dorești să închei sesiunea de studiu?",
-      "continueStudying": "Continuă să studiezi",
+      "continueStudy": "Continuă să studiezi",
       "endSession": "Încheie sesiunea",
       "sessionNotFound": "Sesiune de studiu negăsită.",
       "sessionSavedMsg": "Sesiunea ta de studiu a fost salvată cu succes!",

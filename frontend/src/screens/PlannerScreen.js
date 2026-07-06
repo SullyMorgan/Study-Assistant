@@ -78,7 +78,7 @@ export default function PlannerScreen() {
   const handleAcceptPlan = async () => {
     setIsAccepting(true);
     try {
-      await acceptStudyPlan();
+      await acceptStudyPlan(plan);
 
       for (const session of plan) {
         await scheduleStudyReminder(session);

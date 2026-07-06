@@ -15,9 +15,11 @@ export const getStudyPlan = async (sleepStart = 23, sleepEnd = 8, maxSessions = 
   }
 };
 
-export const acceptStudyPlan = async () => {
+export const acceptStudyPlan = async (plan) => {
   try {
-    const response = await apiClient.post('/generate/accept-plan');
+    const response = await apiClient.post('/generate/accept-plan', {
+      suggested_plan: plan
+    });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to accept plan');

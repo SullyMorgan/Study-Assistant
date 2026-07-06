@@ -23,5 +23,16 @@ class StudySessionOut(StudySessionBase):
   class Config:
     from_attributes = True
 
+class StudySessionAcceptItem(BaseModel):
+  class_id: int
+  task_id: Optional[int] = None
+  start_time: datetime
+  end_time: Optional[datetime] = None
+  duration: int
+  status: str = "planned"
+
+class PlanAcceptIn(BaseModel):
+  suggested_plan: List[StudySessionAcceptItem]
+
 class PlanOut(BaseModel):
   suggested_plan: List[StudySessionOut]

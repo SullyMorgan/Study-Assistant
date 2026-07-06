@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   screenTitle: { fontSize: 26, fontWeight: 'bold', color: '#62119f', marginTop: 30 },
   subTitle: { fontSize: 14, color: '#78716c', marginTop: 5, marginBottom: 25, lineHeight: 20 },
   
-  classCard: { backgroundColor: '#fffdfa', borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: '#62119f' },
+  classCard: { backgroundColor: '#fffdfa', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 0, borderColor: '#62119f' },
   classInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   iconContainer: { backgroundColor: '#fff7ed', width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   textContainer: { marginLeft: 14, flex: 1 },

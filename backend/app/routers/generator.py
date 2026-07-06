@@ -43,16 +43,25 @@ def get_study_plan(
       detail="No tasks or materials found to generate a study plan."
     )
   
-  planner.save_planned_sessions(db, current_user.id, plan)
-
   return schemas.PlanOut(suggested_plan=plan)
 
 @router.post("/accept-plan", status_code=status.HTTP_200_OK)
 def accept_study_plan(
+  plan_data: schemas.PlanAcceptIn,
   background_tasks: BackgroundTasks,
   db: Session = Depends(get_db),
   current_user: models.User = Depends(get_current_user)
 ):
+
+  if not plan_data.suggested_plan:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="No plan data provided to accept."
+    )
+  
+  plan_list = [item.model_dump() for item in plan_data.suggested_plan]
+
+  planner.save_planned_sessions(db, current_user.id, plan_list)
 
   sessions = db.query(models.StudySession).filter(
     models.StudySession.user_id == current_user.id,
